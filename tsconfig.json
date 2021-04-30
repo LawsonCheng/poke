@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+      "outDir": "./lib",
+      "sourceMap": false,
+      "noImplicitAny": false,
+      "declaration": true,
+      "module": "commonjs",
+      "target": "es2015",
+      "strict": true
+    },
+    "include": ["src"],
+    "exclude": [
+        "node_modules",
+        "**/__tests__/*"
+    ]
+  }

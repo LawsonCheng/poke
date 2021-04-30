@@ -1,2 +1,2 @@
-# ping
-A easy to use JS HTTP Client
+# Poke
+A lightweight and handy JS HTTP Client.

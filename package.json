@@ -1,0 +1,36 @@
+{
+  "name": "poke.js",
+  "version": "1.0.0",
+  "description": "A lightweight and handy JS HTTP client",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test",
+    "tsc": "tsc"
+  },
+  "devDependencies": {
+    "terser-webpack-plugin": "^2.2.1",
+    "ts-loader": "^8.0.4",
+    "typescript": "^4.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LawsonCheng/poke.git"
+  },
+  "keywords": [
+    "javascript",
+    "nodejs",
+    "backend",
+    "http",
+    "request",
+    "https"
+  ],
+  "author": "Lawson Cheng",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LawsonCheng/poke/issues"
+  },
+  "homepage": "https://github.com/LawsonCheng/poke#readme",
+  "dependencies": {
+    "@types/node": "^15.0.1"
+  }
+}
