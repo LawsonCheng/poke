@@ -1,6 +1,6 @@
 {
   "name": "@lawsoncheng/poke",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A lightweight and handy JS HTTP client",
   "main": "index.js",
   "scripts": {
