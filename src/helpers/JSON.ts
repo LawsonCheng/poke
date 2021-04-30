@@ -1,4 +1,4 @@
-export function toJson (jsonString:string, callback?:Function):void|Promise<any> {
+export function toJson (jsonString:string, callback?:(error:Error|null, json:any) => {}):void|Promise<any> {
     // is promise flag
     const isPromise = callback === undefined
     try {

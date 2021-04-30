@@ -13,22 +13,22 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
         // get hostname
         const hostname = host.split('://').pop()
         // check protocol
-        if(!/^https?:/.test(protocol)) {
+        if(!/^https?/.test(protocol)) {
             throw new Error('url must starts with http:// or https://')
         }
         // determine which http library we should use
         const _http = {
-            'http:' : http,
-            'https:' : https, 
+            http,
+            https, 
         }[protocol]
         // setup result container
         let result:PokeResult = {}
         // setup request payload
         let payload = {
             method : options?.method?.toUpperCase() || 'GET',
-            protocol,
+            protocol : `${protocol}:`,
             hostname,
-            port : options?.port || (/^https:$/.test(protocol) ? 443 : 80),
+            port : options?.port || (/^https$/.test(protocol) ? 443 : 80),
             path : `${options?.path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
             headers : options?.headers || {}
         }
@@ -46,7 +46,7 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
             // completion listener
             res.on('end', () => {
                 // append parse json function to result body
-                result.json = (jsonCallback:Function) => toJson((result.body || ""), jsonCallback)
+                result.json = (jsonCallback:(error:Error|null, json:any) => {}) => toJson((result.body || ""), jsonCallback)
                 // callback with result
                 resolve(result)
             })
@@ -64,14 +64,14 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
             result.error = error
             // reject
             isPromise ? (reject && reject(result)) : resolve(result)
-        });
+        })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
             // append body
             req?.write(options.body || {})
         }
         // req end
-        req?.end();
+        req?.end()
     }
 
     // return result in Promise
@@ -85,4 +85,4 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
 
 }
 
-export default Poke;
+export default Poke
