@@ -1,5 +1,5 @@
 {
-  "name": "poke.js",
+  "name": "@lawsoncheng/poke",
   "version": "1.0.0",
   "description": "A lightweight and handy JS HTTP client",
   "main": "index.js",
