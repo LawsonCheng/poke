@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npm test",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "lint": "eslint src/**"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.22.0",
