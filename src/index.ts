@@ -29,7 +29,7 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
             protocol : `${protocol}:`,
             hostname,
             port : options?.port || (/^https$/.test(protocol) ? 443 : 80),
-            path : `${options?.path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
+            path : `${options?.path || "/"}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
             headers : options?.headers || {}
         }
         // is promise flag
