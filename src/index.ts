@@ -9,11 +9,11 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
     // handler
     const makeRequest = function (resolve:Function, reject?:Function) {
         // get protocol
-        const protocol = host.substr(0, 6)
+        const protocol = host.substr(0, host.indexOf(':'))
         // get hostname
         const hostname = host.split('://').pop()
         // check protocol
-        if(!/^http(s?):/.test(protocol)) {
+        if(!/^https?:/.test(protocol)) {
             throw new Error('url must starts with http:// or https://')
         }
         // determine which http library we should use
