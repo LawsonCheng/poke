@@ -1,16 +1,16 @@
 # Poke
 A lightweight and handy JS HTTP Client.
 
-[![npm package](https://nodei.co/npm/@lawsoncheng/poke.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/@lawsoncheng/poke/)
+[![npm package](https://nodei.co/npm/js.poke.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/js.poke/)
 
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
-[![Known Vulnerabilities](https://snyk.io/test/npm/@lawsoncheng/poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/@lawsoncheng/poke)
+[![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
 ## Easy to use!
 Poke is try to make http requests in the simplest way. See the following example:
 
 ```js
-const poke = require('@lawsoncheng/poke')
+const poke = require('js.poke')
 
 // Using promise
 poke( 'https://foo.api.com', { path : "/candys" })
@@ -31,7 +31,7 @@ Poke accepts three arguments, the `hostname`, `pokeOptions` and the callback fun
 Omit the callback function if you would like to handle the result with `Promise`.
 
 ```js
-const poke = require('@lawsoncheng/poke')
+const poke = require('js.poke')
 
 // Using promise
 poke( hostname , pokeOptions )
