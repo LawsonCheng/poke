@@ -4,7 +4,7 @@ export default interface PokeOption {
     port? : number
     headers? : Headers
     query? : {[key:string]:number|boolean|string|null}
-    body? : any
+    body? : unknown
     // for the convinience of Basic auth
     username? : string
     password? : string

@@ -1,13 +1,13 @@
 import * as https from 'https'
 import * as http from 'http'
 import PokeOption from './interfaces/PokeOption'
-import PokeResult from './interfaces/PokeResult'
+import PokeResult, { JSONCallback } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 
-function Poke (host:string, options?:PokeOption, callback?:Function):void|Promise<PokeResult> {
+function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<PokeResult> {
     // handler
-    const makeRequest = function (resolve:Function, reject?:Function) {
+    const makeRequest = function (resolve:(any), reject?:(any)) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // get hostname
@@ -22,14 +22,14 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
             https, 
         }[protocol]
         // setup result container
-        let result:PokeResult = {}
+        const result:PokeResult = {}
         // setup request payload
-        let payload = {
+        const payload = {
             method : options?.method?.toUpperCase() || 'GET',
             protocol : `${protocol}:`,
             hostname,
             port : options?.port || (/^https$/.test(protocol) ? 443 : 80),
-            path : `${options?.path || "/"}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
+            path : `${options?.path || '/'}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
             headers : options?.headers || {}
         }
         // is promise flag
@@ -46,7 +46,7 @@ function Poke (host:string, options?:PokeOption, callback?:Function):void|Promis
             // completion listener
             res.on('end', () => {
                 // append parse json function to result body
-                result.json = (jsonCallback:(error:Error|null, json:any) => {}) => toJson((result.body || ""), jsonCallback)
+                result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
                 // callback with result
                 resolve(result)
             })

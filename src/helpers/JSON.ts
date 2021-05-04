@@ -1,9 +1,11 @@
-export function toJson (jsonString:string, callback?:(error:Error|null, json:any) => {}):void|Promise<any> {
+import { JSONCallback } from '../interfaces/PokeResult'
+
+export function toJson (jsonString:string, callback?:JSONCallback):void|Promise<unknown> {
     // is promise flag
     const isPromise = callback === undefined
     try {
         // parse json
-        let json = JSON.parse(jsonString)
+        const json = JSON.parse(jsonString)
         // return a promise object
         if(isPromise) {
             // resolve with json

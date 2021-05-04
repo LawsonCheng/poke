@@ -1,11 +1,11 @@
-export function stringifyQuery(query:{ [key:string] : number|boolean|string|null }) {
+export function stringifyQuery(query:{ [key:string] : number|boolean|string|null }):string {
     // compose query
-    let queries = Object.keys(query)
-                    .reduce<string[]>((queryStrings, key) => {
-                        // append query pairs
-                        queryStrings.push(`${key}=${query[key]}`)
-                        return queryStrings
-                    }, [])
+    const queries = Object.keys(query)
+        .reduce<string[]>((queryStrings, key) => {
+            // append query pairs
+            queryStrings.push(`${key}=${query[key]}`)
+            return queryStrings
+        }, [])
     // return queries join by '&'
-    return `?${encodeURIComponent(queries.join("&"))}`
+    return `?${encodeURIComponent(queries.join('&'))}`
 }
