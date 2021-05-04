@@ -6,7 +6,7 @@ export default interface PokeOption {
     query?: {
         [key: string]: number | boolean | string | null;
     };
-    body?: any;
+    body?: unknown;
     username?: string;
     password?: string;
 }

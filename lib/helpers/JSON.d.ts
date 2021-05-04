@@ -1,1 +1,2 @@
-export declare function toJson(jsonString: string, callback?: (error: Error | null, json: any) => {}): void | Promise<any>;
+import { JSONCallback } from '../interfaces/PokeResult';
+export declare function toJson(jsonString: string, callback?: JSONCallback): void | Promise<unknown>;
