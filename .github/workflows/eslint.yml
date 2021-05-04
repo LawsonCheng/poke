@@ -1,0 +1,17 @@
+name: eslint
+
+on:
+  pull_request:
+    branches: [ develop ]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm i eslint -g
+
+      - name: run-eslint
+        run: npm run-script lint
