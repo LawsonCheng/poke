@@ -1,6 +1,6 @@
 const poke = require('../index');
 
-module.exports.default = () => {
+module.exports.callback = () => {
     return new Promise((resolve, reject) => {
         poke(
             'https://httpbin.org/post', 
