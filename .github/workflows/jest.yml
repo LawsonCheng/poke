@@ -1,0 +1,17 @@
+name: Jest
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: npm i jest
+
+      - name: Run Unit tests
+        run: npm test
