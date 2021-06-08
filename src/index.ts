@@ -10,12 +10,24 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
     const makeRequest = function (resolve:(any), reject?:(any)) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
-        // get hostname
-        const hostname = host.split('://').pop()
         // check protocol
         if(!/^https?/.test(protocol)) {
             throw new Error('url must starts with http:// or https://')
         }
+        // get hostname
+        let hostname:string = host.split('://').pop() || ''
+        // make sure hostname is valid
+        if(hostname === undefined || hostname === null || hostname.length === 0) {
+            throw new Error('hostname is required to poke request.')
+        }
+        // let's breakdown the full url into domain and path
+        const full_url:Array<string> = hostname?.split('/') || []
+        // get hostname by removing the first element
+        hostname = full_url.shift() || ''
+        // get path from options.path, join the rest elements if options.path does not exist
+        let path:string = options?.path || full_url.join('/')
+        // append querys
+        path = `/${path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`
         // determine which http library we should use
         const _http = {
             http,
@@ -28,8 +40,8 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
             method : options?.method?.toUpperCase() || 'GET',
             protocol : `${protocol}:`,
             hostname,
+            path,
             port : options?.port || (/^https$/.test(protocol) ? 443 : 80),
-            path : `${options?.path || '/'}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`,
             headers : options?.headers || {}
         }
         // is promise flag
