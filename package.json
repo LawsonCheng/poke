@@ -4,7 +4,7 @@
   "description": "A lightweight and handy JS HTTP client",
   "main": "index.js",
   "scripts": {
-    "test": "npm test",
+    "test": "jest",
     "tsc": "tsc",
     "lint": "eslint src/**"
   },
@@ -12,6 +12,7 @@
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
     "eslint": "^7.25.0",
+    "jest": "^27.0.4",
     "terser-webpack-plugin": "^2.2.1",
     "ts-loader": "^8.0.4",
     "typescript": "^4.0.3"

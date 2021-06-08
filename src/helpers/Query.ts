@@ -7,5 +7,5 @@ export function stringifyQuery(query:{ [key:string] : number|boolean|string|null
             return queryStrings
         }, [])
     // return queries join by '&'
-    return `?${encodeURIComponent(queries.join('&'))}`
+    return `?${queries.join('&')}`
 }
