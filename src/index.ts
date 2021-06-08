@@ -15,17 +15,17 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
             throw new Error('url must starts with http:// or https://')
         }
         // get hostname
-        let hostname:string = host.split('://').pop() || ""
+        let hostname:string = host.split('://').pop() || ''
         // make sure hostname is valid
         if(hostname === undefined || hostname === null || hostname.length === 0) {
             throw new Error('hostname is required to poke request.')
         }
         // let's breakdown the full url into domain and path
-        let full_url:Array<string> = hostname?.split('/') || []
+        const full_url:Array<string> = hostname?.split('/') || []
         // get hostname by removing the first element
-        hostname = full_url.shift() || "";
+        hostname = full_url.shift() || ''
         // get path from options.path, join the rest elements if options.path does not exist
-        let path:string = options?.path || full_url.join("/");
+        let path:string = options?.path || full_url.join('/')
         // append querys
         path = `/${path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`
         // determine which http library we should use
