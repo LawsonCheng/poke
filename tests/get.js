@@ -1,22 +1,26 @@
-/**
- * @TODO :add more tests 
- */
-
 const poke = require('../index');
 
-poke(
-    'https://carlig.com', 
-    {
-        path : "/api/articles",
-    }
-)
-.then(res => {
-    console.log('-----> body: ', res);
-    return res.json()
-})
-.then(json => {
-    console.log('-----> json: ', json)
-})
-.catch(err => {
-    console.log('----> Err: ', err);
-})
+module.exports.default = () => {
+    return new Promise((resolve, reject) => {
+        poke('https://httpbin.org/get', {}, (result) => {
+            if(!result.error){
+                result.json().then(json => resolve(json.url)).catch(e => reject(false));
+            } else {
+                reject(false);
+            }
+        })
+    })
+}
+
+module.exports.promise = () => {
+    return new Promise((resolve, reject) => poke('https://httpbin.org/get')
+    .then(res => {
+        return res.json()
+    })
+    .then(json => {
+        resolve(json.url);
+    })
+    .catch(err => {
+        reject(false);
+    }))
+}
