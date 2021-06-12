@@ -36,7 +36,7 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
         // setup result container
         const result:PokeResult = {}
         // setup request payload
-        let payload = {
+        const payload = {
             method : options?.method?.toUpperCase() || 'GET',
             protocol : `${protocol}:`,
             hostname,
@@ -48,7 +48,7 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
         if(options?.username !== undefined || options?.password !== undefined) {
             payload.headers = {
                 ...payload.headers,
-                Authorization : `Basic ${Buffer.from(`${options?.username || ""}:${options?.password || ""}`).toString('base64')}`
+                Authorization : `Basic ${Buffer.from(`${options?.username || ''}:${options?.password || ''}`).toString('base64')}`
             }
         }
         // is promise flag
