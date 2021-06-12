@@ -36,7 +36,7 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
         // setup result container
         const result:PokeResult = {}
         // setup request payload
-        const payload = {
+        let payload = {
             method : options?.method?.toUpperCase() || 'GET',
             protocol : `${protocol}:`,
             hostname,
