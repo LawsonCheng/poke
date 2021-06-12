@@ -44,6 +44,13 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
             port : options?.port || (/^https$/.test(protocol) ? 443 : 80),
             headers : options?.headers || {}
         }
+        // need to handle basic auth
+        if(options?.username !== undefined || options?.password !== undefined) {
+            payload.headers = {
+                ...payload.headers,
+                Authorization : `Basic ${Buffer.from(`${options?.username || ""}:${options?.password || ""}`).toString('base64')}`
+            }
+        }
         // is promise flag
         const isPromise = reject !== undefined
         // prepare request
