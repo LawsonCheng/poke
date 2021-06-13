@@ -1,4 +1,4 @@
 import PokeOption from './interfaces/PokeOption';
-import PokeResult from './interfaces/PokeResult';
-declare function Poke(host: string, options?: PokeOption, callback?: (any)): void | Promise<PokeResult>;
+import PokeReturn from './interfaces/PokeReturn';
+declare function Poke(host: string, options?: PokeOption, callback?: (PokeResult: any) => void): PokeReturn;
 export default Poke;

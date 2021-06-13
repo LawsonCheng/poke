@@ -107,7 +107,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
         })
     }
 
-    return _return;
+    return _return
 }
 
 export default Poke
