@@ -27,6 +27,7 @@ module.exports.promise = () => {
                 password : 'sdkm'
             }
         )
+        .promise()
         .then(res => resolve(res.statusCode))
         .catch(err => reject(false)))
 }

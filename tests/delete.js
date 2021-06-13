@@ -23,6 +23,7 @@ module.exports.promise = () => {
                 method : 'DELETE'
             }
         )
+        .promise()
         .then(res => resolve(res.statusCode))
         .catch(err => reject(false)))
 }

@@ -1,13 +1,14 @@
 import * as https from 'https'
 import * as http from 'http'
 import PokeOption from './interfaces/PokeOption'
+import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { JSONCallback } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 
-function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<PokeResult> {
+function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
     // handler
-    const makeRequest = function (resolve:(any), reject?:(any)) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
@@ -51,8 +52,6 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
                 Authorization : `Basic ${Buffer.from(`${options?.username || ''}:${options?.password || ''}`).toString('base64')}`
             }
         }
-        // is promise flag
-        const isPromise = reject !== undefined
         // prepare request
         const req = _http?.request(payload, res => {
             // set status code
@@ -67,14 +66,14 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
                 // append parse json function to result body
                 result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
                 // callback with result
-                resolve(result)
+                requestCallback(result)
             })
             // error listener
             res.on('error', error => {
                 // set error
                 result.error = error
                 // reject
-                isPromise ? (reject && reject(result)) : resolve(result)
+                requestCallback(result)
             })
         })
         // error listener
@@ -82,7 +81,7 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
             // set error
             result.error = error
             // reject
-            isPromise ? (reject && reject(result)) : resolve(result)
+            requestCallback(result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
@@ -93,15 +92,22 @@ function Poke (host:string, options?:PokeOption, callback?:(any)):void|Promise<P
         req?.end()
     }
 
-    // return result in Promise
-    if(callback === undefined) {
-        return new Promise(makeRequest)
-    } 
-    // return in callback
-    else {
+    // return PokeResult in callback
+    if(callback !== undefined) {
         makeRequest(callback)
     }
 
+    // declare PokeReturn
+    const _return:PokeReturn = {
+        promise : () => new Promise<PokeResult>((resolve, reject) => {
+            makeRequest(result => {
+                // callback based on error whether error exists
+                result.error !== undefined ? reject(result) : resolve(result)
+            })
+        })
+    }
+
+    return _return
 }
 
 export default Poke
