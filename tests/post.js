@@ -31,6 +31,7 @@ module.exports.promise = () => {
                 })
             }
         )
+        .promise()
         .then(res => {
             return res.json()
         })
