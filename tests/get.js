@@ -14,6 +14,7 @@ module.exports.callback = () => {
 
 module.exports.promise = () => {
     return new Promise((resolve, reject) => poke('https://httpbin.org/get')
+    .promise()
     .then(res => {
         return res.json()
     })
