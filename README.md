@@ -7,14 +7,20 @@ A lightweight and handy JS HTTP Client.
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
 ## Easy to use!
-Poke is try to make http requests in the simplest way. See the following example:
+Poke allows you to make http request in the simplest way. See the following example:
 
 ```js
 const poke = require('js.poke')
 
 // Using promise
 poke( 'https://foo.api.com', { path : "/candys" })
-.then(result => result.json())
+.promise()
+.then(result => {
+    // response body here
+    console.log(result.body);
+    // get result in json format
+    return result.json()
+})
 .then(json => {
     // here is the json object
     console.log('> json: ', json)
@@ -34,7 +40,8 @@ Omit the callback function if you would like to handle the result with `Promise`
 const poke = require('js.poke')
 
 // Using promise
-poke( hostname , pokeOptions )
+poke( hostname , pokeOptions)
+.promise()
 .then(pokeResult => { 
     // do your handling here
     ... 
@@ -44,15 +51,18 @@ poke( hostname , pokeOptions )
     ...
 })
 
-// Using promise
-poke( hostname , pokeOptions )
-.then(pokeResult => { 
-    // do your handling here
-    ... 
-})
-.catch(error => {
-    // handle error
-    ...
+// Using callback
+poke(hostname , pokeOptions, result => {
+    // status code
+    console.log(result.statusCode)
+    // body
+    console.log(result.body)
+    // in json format
+    result.json(json => {
+        console.log(json)
+    })
+    // error
+    console.log(result.error)
 })
 ```
 
@@ -65,6 +75,9 @@ const options = {
     method : "GET", // POST, PUT, DELETE
     path : "/", 
     port : 3001,
+    // username and password for Basic Auth
+    username : 'foouser',
+    password : 'foosecret'
     headers : {
         "content-type" : "application/json"
     },
@@ -84,6 +97,7 @@ You may also call the `json()` to parse the body into json.
 
 ```js
 poke('https://foo.api.com', options)
+.promise()
 .then(result => {
     // status code
     console.log(result.statusCode)
