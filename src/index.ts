@@ -65,6 +65,8 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             res.on('end', () => {
                 // append parse json function to result body
                 result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                // save headers
+                result.headers = res.headers
                 // callback with result
                 requestCallback(result)
             })
