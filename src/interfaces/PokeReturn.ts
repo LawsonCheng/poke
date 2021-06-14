@@ -1,5 +1,7 @@
 import PokeResult from './PokeResult'
 
 export default interface PokeReturn {
-    promise : () => Promise<PokeResult>
+    promise : () => Promise<PokeResult>,
+    // abort request
+    abort : () => void
 }
