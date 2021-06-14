@@ -17,7 +17,7 @@ poke( 'https://foo.api.com', { path : "/candys" })
 .promise()
 .then(result => {
     // response body here
-    console.log(result.body);
+    console.log(result.body)
     // get result in json format
     return result.json()
 })
@@ -103,12 +103,14 @@ poke('https://foo.api.com', options)
     console.log(result.statusCode)
     // body:string
     console.log(result.body)
+    // headers
+    console.log(result.headers)
     // parse json
-    return result.json();
+    return result.json()
 })
 .then(json => {
     // handle with parsed json
-    ...
+    console.log(json)
 })
 .catch(error => {
     // handler error
