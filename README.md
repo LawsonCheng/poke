@@ -6,6 +6,15 @@ A lightweight and handy JS HTTP Client.
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
+## Installation
+```sh
+npm i js.poke --save
+```
+or
+```sh
+yarn js.poke
+```
+
 ## Easy to use!
 Poke allows you to make http request in the simplest way. See the following example:
 
