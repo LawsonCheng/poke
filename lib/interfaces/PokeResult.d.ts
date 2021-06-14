@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { IncomingHttpHeaders } from "http";
 export interface JSONCallback {
     (error: Error | null, json: {
         [propName: string]: any;
@@ -5,8 +7,8 @@ export interface JSONCallback {
 }
 export default interface PokeResult {
     statusCode?: number;
-    raw?: any;
     error?: Error;
     body?: string;
+    headers?: Headers | IncomingHttpHeaders;
     json?: (jsonCallback?: JSONCallback) => void | Promise<unknown>;
 }
