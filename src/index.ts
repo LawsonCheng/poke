@@ -7,6 +7,8 @@ import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 
 function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
+    // alias of the request
+    let req:http.ClientRequest|undefined
     // handler
     const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // get protocol
@@ -53,7 +55,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             }
         }
         // prepare request
-        const req = _http?.request(payload, res => {
+        req = _http?.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
             // data listener
@@ -101,12 +103,18 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
 
     // declare PokeReturn
     const _return:PokeReturn = {
-        promise : () => new Promise<PokeResult>((resolve, reject) => {
+        promise: () => new Promise<PokeResult>((resolve, reject) => {
             makeRequest(result => {
                 // callback based on error whether error exists
                 result.error !== undefined ? reject(result) : resolve(result)
             })
-        })
+        }),
+        abort: () => {
+            // ensure the destroy function is available
+            if(req?.destroy !== undefined) {
+                req.destroy()
+            }
+        }
     }
 
     return _return
