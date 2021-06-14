@@ -1,4 +1,4 @@
-import { IncomingHttpHeaders } from "http";
+import { IncomingHttpHeaders } from 'http'
 
 export interface JSONCallback {
     (error:Error|null, json:{[propName:string]:any}|null): unknown
