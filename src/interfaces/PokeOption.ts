@@ -1,5 +1,5 @@
 export default interface PokeOption {
-    method? : string
+    method? : 'CREATE'|'GET'|'PUT'|'DELETE'|'PATCH'|'OPTIONS'|'HEAD'|'CONNECT'|'TRACE',
     path? : string
     port? : number
     headers? : Headers
