@@ -1,5 +1,7 @@
 import PokeResult from './PokeResult'
 import * as http from 'http'
+import { WriteStream } from 'node:fs'
+
 
 export default interface PokeReturn {
     req: http.ClientRequest|undefined,
@@ -9,5 +11,5 @@ export default interface PokeReturn {
     // event listeners
     on: (eventName:'data'|'error'|'response', callback:(result:any) => void) => void,
     /* ----- stream ----- */
-    pipe: (chunck:string) => void,
+    pipe: (writableStream:WriteStream) => void,
 }
