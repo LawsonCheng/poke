@@ -9,7 +9,7 @@ export default interface PokeReturn {
     // abort request
     abort : () => void,
     // event listeners
-    on: (eventName:'data'|'error'|'response', callback:(result:any) => void) => void,
+    on: (eventName:'data'|'error'|'response'|'end', callback:(result:any) => void) => void,
     /* ----- stream ----- */
     pipe: (writableStream:WriteStream) => void,
 }
