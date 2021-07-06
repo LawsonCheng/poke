@@ -7,8 +7,67 @@ import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 
 function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
-    // alias of the request
-    let req:http.ClientRequest|undefined
+
+    // declare listeners
+    const listeners = {}
+
+    // the flag to indicate whether request is fired already
+    let requestFired = false
+
+    // declare PokeReturn
+    const _return:PokeReturn = {
+        req: undefined,
+        promise: () => new Promise<PokeResult>((resolve, reject) => {
+            makeRequest(result => {
+                // callback based on error whether error exists
+                result.error !== undefined ? reject(result) : resolve(result)
+            })
+        }),
+        abort: () => {
+            // ensure the destroy function is available
+            if(_return.req !== undefined && _return.req?.destroy !== undefined) {
+                _return.req.destroy()
+            }
+        },
+        on: (eventName, callback) => {
+            // valid event name?
+            if(/^data|error|response|end$/.test(eventName)) {
+                // assign listener to listeners container
+                listeners[eventName] = callback
+            }
+            // check request is fired on not
+            if(requestFired === false) {
+                // fire request
+                makeRequest(result => {
+                    // error exists AND error event listener exists
+                    if(result.error !== undefined && listeners['error'] !== undefined && /^function$/.test(typeof listeners['error'])) {                        
+                        // return response object
+                        listeners['error'](result)
+                    } 
+                    // no error
+                    else {
+                        // response event listener exists
+                        if(listeners['response'] !== undefined && /^function$/.test(typeof listeners['response'])) {
+                            // return response object
+                            listeners['response'](result)
+                        }
+                        // end event listener exists
+                        if(listeners['end'] !== undefined && /^function$/.test(typeof listeners['end'])) {
+                            // return response object
+                            listeners['end']()
+                        }
+                    }
+                })
+                // noted that request is fired
+                requestFired = true
+            }
+            return _return
+        },
+        pipe: (stream) => {
+
+        }
+    }
+
     // handler
     const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // get protocol
@@ -54,14 +113,19 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                 Authorization : `Basic ${Buffer.from(`${options?.username || ''}:${options?.password || ''}`).toString('base64')}`
             }
         }
-        // prepare request
-        req = _http?.request(payload, res => {
+        // prepare request and save it to pokeReturn
+        _return.req = _http?.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
             // data listener
             res.on('data', d => {
                 result.body = result.body || ''
                 result.body += d
+                // data event listener exists
+                if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
+                    // return data chunk
+                    listeners['data'](d)
+                }
             })
             // completion listener
             res.on('end', () => {
@@ -81,40 +145,29 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             })
         })
         // error listener
-        req?.on('error', error => {
+        _return.req?.on('error', error => {
             // set error
             result.error = error
             // reject
             requestCallback(result)
+            // error event listener exists
+            if(listeners['error'] !== undefined && /^function$/.test(typeof listeners['error'])) {
+                // return response object
+                listeners['error'](result)
+            }
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
             // append body
-            req?.write(options.body || {})
+            _return.req?.write(options.body || {})
         }
         // req end
-        req?.end()
+        _return.req?.end()
     }
 
     // return PokeResult in callback
     if(callback !== undefined) {
         makeRequest(callback)
-    }
-
-    // declare PokeReturn
-    const _return:PokeReturn = {
-        promise: () => new Promise<PokeResult>((resolve, reject) => {
-            makeRequest(result => {
-                // callback based on error whether error exists
-                result.error !== undefined ? reject(result) : resolve(result)
-            })
-        }),
-        abort: () => {
-            // ensure the destroy function is available
-            if(req?.destroy !== undefined) {
-                req.destroy()
-            }
-        }
     }
 
     return _return
