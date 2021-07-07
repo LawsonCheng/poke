@@ -1,5 +1,6 @@
 import * as https from 'https'
 import * as http from 'http'
+import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { JSONCallback } from './interfaces/PokeResult'
@@ -117,32 +118,70 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
         _return.req = _http?.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
-            // data listener
-            res.on('data', d => {
-                result.body = result.body || ''
-                result.body += d
-                // data event listener exists
-                if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
-                    // return data chunk
-                    listeners['data'](d)
-                }
-            })
-            // completion listener
-            res.on('end', () => {
-                // append parse json function to result body
-                result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                // save headers
-                result.headers = res.headers
-                // callback with result
-                requestCallback(result)
-            })
-            // error listener
-            res.on('error', error => {
-                // set error
-                result.error = error
-                // reject
-                requestCallback(result)
-            })
+            // does response header indicates that using gzip?
+            const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
+            // is gzip?
+            if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
+                // get gzip
+                let gunzip = zlib.createGunzip();
+                // pipe response to decompress
+                res.pipe(gunzip)
+                // handles data
+                gunzip.on('data', d => {
+                    // decompression chunk ready, add it to the buffer
+                    result.body = result.body || ''
+                    result.body += d
+                    // data event listener exists
+                    if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
+                        // return data chunk
+                        listeners['data'](d)
+                    }
+                })
+                // completion listner
+                .on("end", () => {
+                    // append parse json function to result body
+                    result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                    // save headers
+                    result.headers = res.headers
+                    // callback with result
+                    requestCallback(result)
+        
+                }).on("error", error => {
+                    // set error
+                    result.error = error
+                    // reject
+                    requestCallback(result)
+                })
+            } 
+            // decompress gzip response
+            else {
+                // data listener
+                res.on('data', d => {
+                    result.body = result.body || ''
+                    result.body += d
+                    // data event listener exists
+                    if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
+                        // return data chunk
+                        listeners['data'](d)
+                    }
+                })
+                // completion listener
+                .on('end', () => {
+                    // append parse json function to result body
+                    result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                    // save headers
+                    result.headers = res.headers
+                    // callback with result
+                    requestCallback(result)
+                })
+                // error listener
+                .on('error', error => {
+                    // set error
+                    result.error = error
+                    // reject
+                    requestCallback(result)
+                })
+            }
         })
         // error listener
         _return.req?.on('error', error => {
