@@ -1,14 +1,82 @@
 import * as https from 'https'
 import * as http from 'http'
+import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { JSONCallback } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
+import Event from './helpers/Event'
 
 function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
-    // alias of the request
-    let req:http.ClientRequest|undefined
+
+    // the flag to indicate whether request is fired already
+    let requestFired = false
+
+    // set event manager
+    const eventManager = Event()
+
+    // declare PokeReturn
+    const _return:PokeReturn = {
+        req: undefined,
+        promise: () => new Promise<PokeResult>((resolve, reject) => {
+            makeRequest(result => {
+                // callback based on error whether error exists
+                result.error !== undefined ? reject(result) : resolve(result)
+            })
+        }),
+        abort: () => {
+            // ensure the destroy function is available
+            if(_return.req !== undefined && _return.req?.destroy !== undefined) {
+                _return.req.destroy()
+            }
+        },
+        on: (eventName, callback) => {
+            // valid event name?
+            if(/^data|error|response|end$/.test(eventName)) {
+                // assign callback corresponse to event name
+                eventManager.set(eventName, callback)
+            }
+            // check request is fired on not
+            if(requestFired === false) {
+                // fire request
+                makeRequest(result => {
+                    // error exists AND error event listener exists
+                    if(result.error !== undefined) {
+                        // return response object
+                        eventManager.error(result)
+                    }
+                    // no error
+                    else {
+                        // emit respnse
+                        eventManager.response(result)
+                        // emit end event
+                        eventManager.end()
+                    }
+                    // end stream
+                    eventManager.stream.end()
+                })
+                // noted that request is fired
+                requestFired = true
+            }
+            return _return
+        },
+        pipe: (stream) => {
+            // set write stream
+            eventManager.stream.set(stream)
+            // check request is fired on not
+            if(requestFired === false) {
+                // start request
+                makeRequest(result => {
+                    // end stream
+                    eventManager.stream.end()
+                })
+                // noted that request is fired
+                requestFired = true
+            }
+        }
+    }
+
     // handler
     const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // get protocol
@@ -54,67 +122,98 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                 Authorization : `Basic ${Buffer.from(`${options?.username || ''}:${options?.password || ''}`).toString('base64')}`
             }
         }
-        // prepare request
-        req = _http?.request(payload, res => {
+        // prepare request and save it to pokeReturn
+        _return.req = _http?.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
-            // data listener
-            res.on('data', d => {
-                result.body = result.body || ''
-                result.body += d
-            })
-            // completion listener
-            res.on('end', () => {
-                // append parse json function to result body
-                result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                // save headers
-                result.headers = res.headers
-                // callback with result
-                requestCallback(result)
-            })
-            // error listener
-            res.on('error', error => {
-                // set error
-                result.error = error
-                // reject
-                requestCallback(result)
-            })
+            // does response header indicates that using gzip?
+            const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
+            // is gzip, decompress gzip response first if yes
+            if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
+                // get gzip
+                const gunzip = zlib.createGunzip()
+                // pipe response to decompress
+                res.pipe(gunzip)
+                // handles data
+                gunzip
+                // data listener
+                    .on('data', d => {
+                        // decompression chunk ready, add it to the buffer
+                        result.body = result.body || ''
+                        result.body += d
+                        // data event listener exists
+                        eventManager.data(d)
+                        // emit to stream
+                        eventManager.stream.write(d)
+                    })
+                // completion listner
+                    .on('end', () => {
+                    // append parse json function to result body
+                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                        // save headers
+                        result.headers = res.headers
+                        // callback with result
+                        requestCallback(result)
+                    })
+                // error listener
+                    .on('error', error => {
+                        // set error
+                        result.error = error
+                        // reject
+                        requestCallback(result)
+                    })
+            } 
+            // handles non-gzip compressed request
+            else {
+                res
+                // data listener
+                    .on('data', d => {
+                        result.body = result.body || ''
+                        result.body += d
+                        // data event listener exists
+                        eventManager.data(d)
+                        // emit to stream
+                        eventManager.stream.write(d)
+                    })
+                // completion listener
+                    .on('end', () => {
+                    // append parse json function to result body
+                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                        // save headers
+                        result.headers = res.headers
+                        // callback with result
+                        requestCallback(result)
+                    })
+                // error listener
+                    .on('error', error => {
+                    // set error
+                        result.error = error
+                        // reject
+                        requestCallback(result)
+                    })
+            }
         })
         // error listener
-        req?.on('error', error => {
+        _return.req?.on('error', error => {
             // set error
             result.error = error
             // reject
             requestCallback(result)
+            // error event listener exists
+            eventManager.error(result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
             // append body
-            req?.write(options.body || {})
+            _return.req?.write(options.body || {})
         }
         // req end
-        req?.end()
+        _return.req?.end()
     }
 
     // return PokeResult in callback
     if(callback !== undefined) {
         makeRequest(callback)
-    }
-
-    // declare PokeReturn
-    const _return:PokeReturn = {
-        promise: () => new Promise<PokeResult>((resolve, reject) => {
-            makeRequest(result => {
-                // callback based on error whether error exists
-                result.error !== undefined ? reject(result) : resolve(result)
-            })
-        }),
-        abort: () => {
-            // ensure the destroy function is available
-            if(req?.destroy !== undefined) {
-                req.destroy()
-            }
-        }
     }
 
     return _return
