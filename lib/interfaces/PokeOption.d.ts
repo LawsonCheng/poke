@@ -1,5 +1,5 @@
 export default interface PokeOption {
-    method?: string;
+    method?: 'CREATE' | 'GET' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD' | 'CONNECT' | 'TRACE';
     path?: string;
     port?: number;
     headers?: Headers;
@@ -7,6 +7,7 @@ export default interface PokeOption {
         [key: string]: number | boolean | string | null;
     };
     body?: unknown;
+    gzip?: boolean;
     username?: string;
     password?: string;
 }
