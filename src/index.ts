@@ -58,6 +58,11 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                             listeners['end']()
                         }
                     }
+                    // write stream is exists?
+                    if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].end)){
+                        // pipe data into stream
+                        listeners['stream'].end()
+                    }
                 })
                 // noted that request is fired
                 requestFired = true
@@ -65,7 +70,24 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             return _return
         },
         pipe: (stream) => {
-
+            // no any write stream is attached yet
+            if(listeners['stream'] === undefined) {
+                // set write stream
+                listeners['stream'] = stream
+            }
+            // check request is fired on not
+            if(requestFired === false) {
+                // start request
+                makeRequest(result => {
+                    // write stream is exists?
+                    if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].end)){
+                        // pipe data into stream
+                        listeners['stream'].end()
+                    }
+                })
+                // noted that request is fired
+                requestFired = true
+            }
         }
     }
 
@@ -120,67 +142,81 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             result.statusCode = res.statusCode
             // does response header indicates that using gzip?
             const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
-            // is gzip?
+            // is gzip, decompress gzip response first if yes
             if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
                 // get gzip
-                let gunzip = zlib.createGunzip();
+                const gunzip = zlib.createGunzip()
                 // pipe response to decompress
                 res.pipe(gunzip)
                 // handles data
-                gunzip.on('data', d => {
-                    // decompression chunk ready, add it to the buffer
-                    result.body = result.body || ''
-                    result.body += d
-                    // data event listener exists
-                    if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
-                        // return data chunk
-                        listeners['data'](d)
-                    }
-                })
-                // completion listner
-                .on("end", () => {
-                    // append parse json function to result body
-                    result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                    // save headers
-                    result.headers = res.headers
-                    // callback with result
-                    requestCallback(result)
-        
-                }).on("error", error => {
-                    // set error
-                    result.error = error
-                    // reject
-                    requestCallback(result)
-                })
-            } 
-            // decompress gzip response
-            else {
+                gunzip
                 // data listener
-                res.on('data', d => {
-                    result.body = result.body || ''
-                    result.body += d
-                    // data event listener exists
-                    if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
-                        // return data chunk
-                        listeners['data'](d)
-                    }
-                })
-                // completion listener
-                .on('end', () => {
+                    .on('data', d => {
+                        // decompression chunk ready, add it to the buffer
+                        result.body = result.body || ''
+                        result.body += d
+                        // data event listener exists
+                        if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
+                            // return data chunk
+                            listeners['data'](d)
+                        }
+                        // write stream is exists?
+                        if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].write)){
+                            // pipe data into stream
+                            listeners['stream'].write(d)
+                        }
+                    })
+                // completion listner
+                    .on('end', () => {
                     // append parse json function to result body
-                    result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                    // save headers
-                    result.headers = res.headers
-                    // callback with result
-                    requestCallback(result)
-                })
+                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                        // save headers
+                        result.headers = res.headers
+                        // callback with result
+                        requestCallback(result)
+                    })
                 // error listener
-                .on('error', error => {
+                    .on('error', error => {
+                        // set error
+                        result.error = error
+                        // reject
+                        requestCallback(result)
+                    })
+            } 
+            // handles non-gzip compressed request
+            else {
+                res
+                // data listener
+                    .on('data', d => {
+                        result.body = result.body || ''
+                        result.body += d
+                        // data event listener exists
+                        if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
+                            // return data chunk
+                            listeners['data'](d)
+                        }
+                        // write stream is exists?
+                        if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].write)){
+                            // pipe data into stream
+                            listeners['stream'].write(d)
+                        }
+                    })
+                // completion listener
+                    .on('end', () => {
+                    // append parse json function to result body
+                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                        // save headers
+                        result.headers = res.headers
+                        // callback with result
+                        requestCallback(result)
+                    })
+                // error listener
+                    .on('error', error => {
                     // set error
-                    result.error = error
-                    // reject
-                    requestCallback(result)
-                })
+                        result.error = error
+                        // reject
+                        requestCallback(result)
+                    })
             }
         })
         // error listener
