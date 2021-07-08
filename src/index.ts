@@ -14,7 +14,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
     let requestFired = false
 
     // set event manager
-    let eventManager = Event()
+    const eventManager = Event()
 
     // declare PokeReturn
     const _return:PokeReturn = {
