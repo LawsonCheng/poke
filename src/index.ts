@@ -6,14 +6,15 @@ import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { JSONCallback } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
+import Event from './helpers/Event'
 
 function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
 
-    // declare listeners
-    const listeners = {}
-
     // the flag to indicate whether request is fired already
     let requestFired = false
+
+    // set event manager
+    let eventManager = Event()
 
     // declare PokeReturn
     const _return:PokeReturn = {
@@ -33,36 +34,27 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
         on: (eventName, callback) => {
             // valid event name?
             if(/^data|error|response|end$/.test(eventName)) {
-                // assign listener to listeners container
-                listeners[eventName] = callback
+                // assign callback corresponse to event name
+                eventManager.set(eventName, callback)
             }
             // check request is fired on not
             if(requestFired === false) {
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                    if(result.error !== undefined && listeners['error'] !== undefined && /^function$/.test(typeof listeners['error'])) {                        
+                    if(result.error !== undefined) {
                         // return response object
-                        listeners['error'](result)
-                    } 
+                        eventManager.error(result)
+                    }
                     // no error
                     else {
-                        // response event listener exists
-                        if(listeners['response'] !== undefined && /^function$/.test(typeof listeners['response'])) {
-                            // return response object
-                            listeners['response'](result)
-                        }
-                        // end event listener exists
-                        if(listeners['end'] !== undefined && /^function$/.test(typeof listeners['end'])) {
-                            // return response object
-                            listeners['end']()
-                        }
+                        // emit respnse
+                        eventManager.response(result)
+                        // emit end event
+                        eventManager.end()
                     }
-                    // write stream is exists?
-                    if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].end)){
-                        // pipe data into stream
-                        listeners['stream'].end()
-                    }
+                    // end stream
+                    eventManager.stream.end()
                 })
                 // noted that request is fired
                 requestFired = true
@@ -70,20 +62,14 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             return _return
         },
         pipe: (stream) => {
-            // no any write stream is attached yet
-            if(listeners['stream'] === undefined) {
-                // set write stream
-                listeners['stream'] = stream
-            }
+            // set write stream
+            eventManager.stream.set(stream)
             // check request is fired on not
             if(requestFired === false) {
                 // start request
                 makeRequest(result => {
-                    // write stream is exists?
-                    if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].end)){
-                        // pipe data into stream
-                        listeners['stream'].end()
-                    }
+                    // end stream
+                    eventManager.stream.end()
                 })
                 // noted that request is fired
                 requestFired = true
@@ -156,15 +142,9 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                         result.body = result.body || ''
                         result.body += d
                         // data event listener exists
-                        if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
-                            // return data chunk
-                            listeners['data'](d)
-                        }
-                        // write stream is exists?
-                        if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].write)){
-                            // pipe data into stream
-                            listeners['stream'].write(d)
-                        }
+                        eventManager.data(d)
+                        // emit to stream
+                        eventManager.stream.write(d)
                     })
                 // completion listner
                     .on('end', () => {
@@ -191,15 +171,9 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                         result.body = result.body || ''
                         result.body += d
                         // data event listener exists
-                        if(listeners['data'] !== undefined && /^function$/.test(typeof listeners['data'])) {
-                            // return data chunk
-                            listeners['data'](d)
-                        }
-                        // write stream is exists?
-                        if(listeners['stream'] !== undefined && /^function$/.test(typeof listeners['stream'].write)){
-                            // pipe data into stream
-                            listeners['stream'].write(d)
-                        }
+                        eventManager.data(d)
+                        // emit to stream
+                        eventManager.stream.write(d)
                     })
                 // completion listener
                     .on('end', () => {
@@ -226,10 +200,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             // reject
             requestCallback(result)
             // error event listener exists
-            if(listeners['error'] !== undefined && /^function$/.test(typeof listeners['error'])) {
-                // return response object
-                listeners['error'](result)
-            }
+            eventManager.error(result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
