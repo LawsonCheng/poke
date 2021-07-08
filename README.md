@@ -6,6 +6,14 @@ A lightweight and handy JS HTTP Client.
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
+## Why use Poke?
+
+- [x] Variety of usage
+- [x] Lighweight
+- [x]  Write using Typeescript
+- [x]  Stream support
+- []  WebSocket (Upcoming)
+
 ## Installation
 ```sh
 npm i js.poke --save
@@ -42,14 +50,17 @@ poke( 'https://foo.api.com', { path : "/candys" })
 ## Usage
 ### How to use poke
 
-Poke accepts three arguments, the `hostname`, `pokeOptions` and the callback function.
+Poke accepts `hostname`, `pokeOptions` and the callback function as the inputs.
+then it returns some methods for you to apply in different scenarios.
 Omit the callback function if you would like to handle the result with `Promise`.
 
+
+### `promise`
 ```js
 const poke = require('js.poke')
 
 // Using promise
-poke( hostname , pokeOptions)
+poke(hostname , pokeOptions)
 .promise()
 .then(pokeResult => { 
     // do your handling here
@@ -59,7 +70,12 @@ poke( hostname , pokeOptions)
     // handle error
     ...
 })
+```
 
+
+### `callback`
+```js
+const poke = require('js.poke')
 // Using callback
 poke(hostname , pokeOptions, result => {
     // status code
@@ -75,15 +91,89 @@ poke(hostname , pokeOptions, result => {
 })
 ```
 
+
+### Form data
+```js
+poke(
+    'https://httpbin.org/post',
+    {
+        method : 'POST',
+        // Specify your form data with `boby`
+        body : JSON.stringify({
+            name : 'kfhk!sdkm!'
+        })
+    }
+)
+// ...
+```
+
+### Listening to events by using `on`
+```js
+const poke = require('js.poke')
+// Using callback
+poke(hostname , pokeOptions)
+// listen to response retrived
+.on('response', result => {
+    console.log(res)
+})
+// on chunk is recieved
+.on('data', (chunk) => {
+    // handle your data here
+    console.log(d)
+})
+// on request eneded
+.on('end', () => {
+    console.log('Request is finished')
+})
+// listening to error
+.on('error', (result) => {
+    // handle error
+    console.log(result.error)
+})
+```
+
+### Stream
+
+```js
+const fs = require('fs')
+const poke = require('js.poke')
+
+// get image
+poke('https://via.placeholder.com/100x100')
+// write data as a image file
+.pipe(fs.createWriteStream('image.png'))
+```
+
+Even we can using Poke as a proxy!
+```js
+const poke = require('js.poke')
+
+const serv = http.createServer((req, res) => {
+    if (req.url === '/placeholder') {
+        // get image or whatever you want
+        poke('https://via.placeholder.com/100x100')
+        // pipe response to res
+        .pipe(res)
+    } else {
+        res.end('Bye!')
+    }
+})
+serv.listen(4321)
+```
+
+
 ### The Poke Options
 The `pokeOptions` allows you to customize your request.
 
 ```js
 // The poke option
 const options = {
-    method : "GET", // POST, PUT, DELETE
+    // POST, PUT, DELETE
+    method : "GET", 
     path : "/", 
     port : 3001,
+    // will set automatically, you may override the auto-detect value by specify this boolean
+    gzip : true, 
     // username and password for Basic Auth
     username : 'foouser',
     password : 'foosecret'
