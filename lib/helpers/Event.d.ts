@@ -1,12 +1,12 @@
 /// <reference types="node" />
 import { WriteStream } from 'fs';
 import { ServerResponse } from 'http';
-import PokeResult from '../interfaces/PokeResult';
-interface EventManager {
+import { PokeError, PokeSuccess } from '../interfaces/PokeResult';
+interface EventManager<Result> {
     set: (eventName: string, callback: (param?: unknown) => void) => void;
-    response: (result: PokeResult) => void;
+    response: (result: PokeSuccess<Result>) => void;
     end: () => void;
-    error: (result: PokeResult) => void;
+    error: (result: PokeError<Result>) => void;
     data: (chunk: string | unknown) => void;
     stream: {
         set: (writableStream: WriteStream | ServerResponse) => void;
@@ -14,5 +14,5 @@ interface EventManager {
         end: () => void;
     };
 }
-declare const Event: () => EventManager;
+declare const Event: <Result>() => EventManager<Result>;
 export default Event;
