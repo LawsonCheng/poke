@@ -36,7 +36,7 @@
   },
   "homepage": "https://github.com/LawsonCheng/poke#readme",
   "dependencies": {
-    "zlib": "^1.0.5",
-    "@types/node": "^15.0.1"
+    "@types/node": "^16.3.0",
+    "zlib": "^1.0.5"
   }
 }
