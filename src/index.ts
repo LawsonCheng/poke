@@ -114,7 +114,8 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
         // setup result container
         const result:PokeSuccess<Result> = {
             body: '',
-            json: jsonCallback => jsonCallback? toJson('', jsonCallback) : toJson('')
+            // parse json function
+            json: jsonCallback => jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
         }
         // setup request payload
         const payload = {
@@ -152,10 +153,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                 })
                 // completion listner
                 .on('end', () => {
-                    // append parse json function to result body
-                    result.json = jsonCallback =>
-                        jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
-                        // save headers
+                    // save headers
                     result.headers = res.headers
                     // callback with result
                     requestCallback(result)
