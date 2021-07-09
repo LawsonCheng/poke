@@ -127,14 +127,8 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             result.statusCode = res.statusCode
             // does response header indicates that using gzip?
             const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
-            // is gzip, decompress gzip response first if yes
-            if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
-                // get gzip
-                const gunzip = zlib.createGunzip()
-                // pipe response to decompress
-                res.pipe(gunzip)
-                // handles data
-                gunzip
+
+            const prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream
                 // data listener
                     .on('data', d => {
                         // decompression chunk ready, add it to the buffer
@@ -161,35 +155,19 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                         // reject
                         requestCallback(result)
                     })
-            } 
+
+            // is gzip, decompress gzip response first if yes
+            if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
+                // get gzip
+                const gunzip = zlib.createGunzip()
+                // pipe response to decompress
+                res.pipe(gunzip)
+                // handles data
+                prepareStream(gunzip)
+            }
             // handles non-gzip compressed request
             else {
-                res
-                // data listener
-                    .on('data', d => {
-                        result.body = result.body || ''
-                        result.body += d
-                        // data event listener exists
-                        eventManager.data(d)
-                        // emit to stream
-                        eventManager.stream.write(d)
-                    })
-                // completion listener
-                    .on('end', () => {
-                    // append parse json function to result body
-                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                        // save headers
-                        result.headers = res.headers
-                        // callback with result
-                        requestCallback(result)
-                    })
-                // error listener
-                    .on('error', error => {
-                    // set error
-                        result.error = error
-                        // reject
-                        requestCallback(result)
-                    })
+                prepareStream(res)
             }
         })
         // error listener
