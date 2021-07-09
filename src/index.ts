@@ -3,30 +3,32 @@ import * as http from 'http'
 import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
-import PokeResult, { JSONCallback } from './interfaces/PokeResult'
+import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 import Event from './helpers/Event'
 
-function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult) => void):PokeReturn {
+function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
 
     // the flag to indicate whether request is fired already
     let requestFired = false
 
     // set event manager
-    const eventManager = Event()
+    const eventManager = Event<Result>()
 
     // declare PokeReturn
-    const _return:PokeReturn = {
-        promise: () => new Promise<PokeResult>((resolve, reject) => {
+    const _return:PokeReturn<Result> = {
+        promise: () => new Promise((resolve, reject) => {
             makeRequest(result => {
                 // callback based on error whether error exists
-                result.error !== undefined ? reject(result) : resolve(result)
+                // NOTE: ts seems not able to infer the reject part as PokeError but it doesn't matter in pratice
+                // NOTE: probably due to the mixing use of genric and typeguard and tsc is not smart enough for that?
+                isPokeSuccess<Result>(result)? resolve(result): reject(result)
             })
         }),
         abort: () => {
             // ensure the destroy function is available
-            if(_return.req !== undefined && _return.req?.destroy !== undefined) {
+            if(_return.req?.destroy !== undefined) {
                 _return.req.destroy()
             }
         },
@@ -41,14 +43,16 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                    if(result.error !== undefined) {
+                    if (isPokeError<Result>(result)) {
                         // return response object
                         eventManager.error(result)
                     }
                     // no error
                     else {
                         // emit respnse
-                        eventManager.response(result)
+                        // NOTE: ts seems not able to infer the result type but it doesn't matter in pratice
+                        // NOTE: probably due to the mixing use of genric and typeguard and tsc is not powerful enough for that?
+                        eventManager.response(result as PokeSuccess<Result>)
                         // emit end event
                         eventManager.end()
                     }
@@ -66,7 +70,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             // check request is fired on not
             if(requestFired === false) {
                 // start request
-                makeRequest(result => {
+                makeRequest(_ => {
                     // end stream
                     eventManager.stream.end()
                 })
@@ -77,7 +81,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult<Result>) => void) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
@@ -95,7 +99,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         // get hostname by removing the first element
         hostname = full_url.shift() || ''
         // get path from options.path, join the rest elements if options.path does not exist
-        let path:string = options?.path || full_url.join('/')
+        let path = options?.path || full_url.join('/')
         // append querys
         path = `/${path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`
         // determine which http library we should use
@@ -104,7 +108,10 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             https, 
         }[protocol]
         // setup result container
-        const result:PokeResult = {}
+        const result:PokeSuccess<Result> = {
+            body: '',
+            json: jsonCallback => jsonCallback? toJson('', jsonCallback) : toJson('')
+        }
         // setup request payload
         const payload = {
             method : options?.method?.toUpperCase() || 'GET',
@@ -132,7 +139,6 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // data listener
                     .on('data', d => {
                         // decompression chunk ready, add it to the buffer
-                        result.body = result.body || ''
                         result.body += d
                         // data event listener exists
                         eventManager.data(d)
@@ -142,7 +148,8 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // completion listner
                     .on('end', () => {
                     // append parse json function to result body
-                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
+                        result.json = jsonCallback =>
+                            jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
                         // save headers
                         result.headers = res.headers
                         // callback with result
@@ -150,10 +157,8 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                     })
                 // error listener
                     .on('error', error => {
-                        // set error
-                        result.error = error
                         // reject
-                        requestCallback(result)
+                        requestCallback({...result, error})
                     })
 
             // is gzip, decompress gzip response first if yes
@@ -172,12 +177,11 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         })
         // error listener
         _return.req?.on('error', error => {
-            // set error
-            result.error = error
+            const error_result = { ...result, error }
             // reject
-            requestCallback(result)
+            requestCallback(error_result)
             // error event listener exists
-            eventManager.error(result)
+            eventManager.error(error_result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {

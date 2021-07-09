@@ -1,12 +1,12 @@
 import { WriteStream } from 'fs'
 import { ServerResponse } from 'http'
-import PokeResult from '../interfaces/PokeResult'
+import { PokeError, PokeSuccess } from '../interfaces/PokeResult'
 
-interface EventManager {
+interface EventManager <Result>{
     set: (eventName:string, callback:(param?:unknown) => void) => void,
-    response: (result:PokeResult) => void,
+    response: (result:PokeSuccess<Result>) => void,
     end:() => void,
-    error: (result:PokeResult) => void,
+    error: (result:PokeError<Result>) => void,
     data: (chunk:string|unknown) => void,
     stream: {
         set: (writableStream:WriteStream|ServerResponse) => void,
@@ -15,11 +15,11 @@ interface EventManager {
     }
 }
 
-const Event = function () {
+const Event = function <Result>(): EventManager<Result> {
     // the place to stores those callbacks
     const callbacks = {}
     // return append callback methods and event callback methods
-    const manager:EventManager = {
+    return {
         // set 
         set: (eventName, callback) => {
             // valid event name and callback is a function
@@ -28,7 +28,7 @@ const Event = function () {
                 callbacks[eventName] = callback
             }
         },
-        response: (result:PokeResult) => {
+        response: (result) => {
             if(callbacks['response'] !== undefined) {
                 // return response
                 callbacks['response'](result)
@@ -40,7 +40,7 @@ const Event = function () {
                 callbacks['end']()
             }
         },
-        error: (result:PokeResult) => {
+        error: (result) => {
             if(callbacks['error'] !== undefined) {
                 // return response object with error
                 callbacks['error'](result)
@@ -72,7 +72,6 @@ const Event = function () {
             }
         }
     }
-    return manager
 }
 
 export default Event
