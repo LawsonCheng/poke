@@ -17,11 +17,11 @@ export type PokeError<Result> = PokeSuccess<Result> & {
 
 export type PokeResult<Result> = PokeSuccess<Result> | PokeError<Result>
 
-export function isPokeSuccess<Result>(input: any) : input is PokeSuccess<Result>{
+export function isPokeSuccess<Result>(input) : input is PokeSuccess<Result>{
     return input.error == undefined
 }
 
-export function isPokeError<Result>(input: any) : input is PokeError<Result>{
+export function isPokeError<Result>(input) : input is PokeError<Result>{
     return input.error != undefined
 }
 

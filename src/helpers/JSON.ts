@@ -4,15 +4,15 @@ export function toJson <Result>(jsonString:string):Promise<Result>;
 export function toJson <Result>(jsonString:string, callback:JSONCallback<Result>):void
 export function toJson <Result>(jsonString:string, callback?:JSONCallback<Result>):void|Promise<Result> {
     if (callback === undefined) {
-       try {
+        try {
         // parse json
-        const json = JSON.parse(jsonString)
-        // resolve with json
-        return Promise.resolve(json)
-       } catch (error) {
-           // error occurred, reject promise
-           return Promise.reject(error)
-       }
+            const json = JSON.parse(jsonString)
+            // resolve with json
+            return Promise.resolve(json)
+        } catch (error) {
+            // error occurred, reject promise
+            return Promise.reject(error)
+        }
     } else {
         try {
             // parse json

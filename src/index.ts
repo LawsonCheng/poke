@@ -71,7 +71,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             // check request is fired on not
             if(requestFired === false) {
                 // start request
-                makeRequest(_ => {
+                makeRequest(() => {
                     // end stream
                     eventManager.stream.end()
                 })
@@ -139,29 +139,29 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
 
             const prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream
                 // data listener
-                    .on('data', d => {
-                        // decompression chunk ready, add it to the buffer
-                        result.body += d
-                        // data event listener exists
-                        eventManager.data(d)
-                        // emit to stream
-                        eventManager.stream.write(d)
-                    })
+                .on('data', d => {
+                    // decompression chunk ready, add it to the buffer
+                    result.body += d
+                    // data event listener exists
+                    eventManager.data(d)
+                    // emit to stream
+                    eventManager.stream.write(d)
+                })
                 // completion listner
-                    .on('end', () => {
+                .on('end', () => {
                     // append parse json function to result body
-                        result.json = jsonCallback =>
-                            jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
+                    result.json = jsonCallback =>
+                        jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
                         // save headers
-                        result.headers = res.headers
-                        // callback with result
-                        requestCallback(result)
-                    })
+                    result.headers = res.headers
+                    // callback with result
+                    requestCallback(result)
+                })
                 // error listener
-                    .on('error', error => {
-                        // reject
-                        requestCallback({...result, error})
-                    })
+                .on('error', error => {
+                    // reject
+                    requestCallback({...result, error})
+                })
 
             // is gzip, decompress gzip response first if yes
             if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
