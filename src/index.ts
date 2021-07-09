@@ -6,7 +6,7 @@ import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
-import Event from './helpers/Event'
+import initEventManager from './helpers/Event'
 import { isProtocol } from './interfaces/Protocol'
 
 function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
@@ -15,7 +15,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
     let requestFired = false
 
     // set event manager
-    const eventManager = Event<Result>()
+    const eventManager = initEventManager<Result>()
 
     // declare PokeReturn
     const _return:PokeReturn<Result> = {

@@ -15,7 +15,7 @@ interface EventManager <Result>{
     }
 }
 
-const Event = function <Result>(): EventManager<Result> {
+const initEventManager = function <Result>(): EventManager<Result> {
     // the place to stores those callbacks
     const callbacks = {}
     // return append callback methods and event callback methods
@@ -74,4 +74,4 @@ const Event = function <Result>(): EventManager<Result> {
     }
 }
 
-export default Event
+export default initEventManager
