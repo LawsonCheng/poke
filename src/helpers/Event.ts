@@ -2,28 +2,51 @@ import { WriteStream } from 'fs'
 import { ServerResponse } from 'http'
 import { PokeError, PokeSuccess } from '../interfaces/PokeResult'
 
+type CallbackEvent = 'data' | 'error' | 'response' | 'end'
+
+function isCallbackEvent(input:string): input is CallbackEvent {
+    return /^data|error|response|end$/.test(input)
+}
+
+type Stream = WriteStream | ServerResponse
+
+type EventCallbacksContainer<Result> = {
+    [e in CallbackEvent | 'stream']? :
+    e extends 'data'
+      ? (chunk:unknown) => void // FIXME what is the type of chuck should be string?
+      : e extends 'error'
+          ? (result:PokeError<Result>) => void
+            :e extends 'response'
+            ? (param?:PokeSuccess<Result>) => void
+                : e extends 'end'
+                    ? () => void
+                    : e extends 'stream'
+                        ? Stream
+                        : never
+}
+
 interface EventManager <Result>{
-    set: (eventName:string, callback:(param?:unknown) => void) => void,
-    response: (result:PokeSuccess<Result>) => void,
-    end:() => void,
-    error: (result:PokeError<Result>) => void,
-    data: (chunk:string|unknown) => void,
+    set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer<Result>[Event]) => void,
+    response: EventCallbacksContainer<Result>['response'],
+    end: EventCallbacksContainer<Result>['end'],
+    error: EventCallbacksContainer<Result>['error'],
+    data: EventCallbacksContainer<Result>['data'],
     stream: {
-        set: (writableStream:WriteStream|ServerResponse) => void,
-        write: (chunk:string|unknown) => void,
+        set: (writableStream: Stream) => void,
+        write: (chunk:unknown) => void, // FIXME what is the type of chuck should be string?
         end: () => void,
     }
 }
 
 const initEventManager = function <Result>(): EventManager<Result> {
     // the place to stores those callbacks
-    const callbacks = {}
+    const callbacks: EventCallbacksContainer<Result> = {}
     // return append callback methods and event callback methods
     return {
         // set 
         set: (eventName, callback) => {
             // valid event name and callback is a function
-            if(/^data|error|response|end$/.test(eventName) && /^function$/.test(typeof callback)) {
+            if(isCallbackEvent(eventName) && /^function$/.test(typeof callback)) {
                 // assign listener to listeners container
                 callbacks[eventName] = callback
             }
@@ -46,7 +69,7 @@ const initEventManager = function <Result>(): EventManager<Result> {
                 callbacks['error'](result)
             }
         },
-        data: (chunk:string|unknown) => {
+        data: (chunk:unknown) => {
             if(callbacks['data'] !== undefined) {
                 callbacks['data'](chunk)
             }
@@ -56,7 +79,7 @@ const initEventManager = function <Result>(): EventManager<Result> {
                 // save stream
                 callbacks['stream'] = writableStream
             },
-            write: (d:string|unknown) => {
+            write: (d:unknown) => {
                 // ensure stream exists
                 if(callbacks['stream'] !== undefined && /^function$/.test(typeof callbacks['stream'].write)) {
                     // emit stream end event
