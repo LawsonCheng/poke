@@ -1,4 +1,4 @@
-import { WriteStream } from 'node:fs'
+import { WriteStream } from 'fs'
 import PokeResult from '../interfaces/PokeResult'
 
 interface EventManager {

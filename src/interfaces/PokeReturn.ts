@@ -1,6 +1,6 @@
 import PokeResult from './PokeResult'
 import * as http from 'http'
-import { WriteStream } from 'node:fs'
+import { WriteStream } from 'fs'
 
 
 export default interface PokeReturn {

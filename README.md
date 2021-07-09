@@ -3,6 +3,9 @@ A lightweight and handy JS HTTP Client.
 
 [![npm package](https://nodei.co/npm/js.poke.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/js.poke/)
 
+[![Build-status](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)
+[![Tests](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)
+[![esLint](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
