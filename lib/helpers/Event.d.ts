@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { WriteStream } from 'node:fs';
+import { WriteStream } from 'fs';
 import PokeResult from '../interfaces/PokeResult';
 interface EventManager {
     set: (eventName: string, callback: (param?: unknown) => void) => void;
