@@ -1,6 +1,7 @@
 import PokeResult from './PokeResult'
 import * as http from 'http'
 import { WriteStream } from 'fs'
+import { ServerResponse } from 'http'
 
 
 export default interface PokeReturn {
@@ -11,5 +12,5 @@ export default interface PokeReturn {
     // event listeners
     on: (eventName:'data'|'error'|'response'|'end', callback:(result?:any) => void) => PokeReturn,
     /* ----- stream ----- */
-    pipe: (writableStream:WriteStream) => void,
+    pipe: (writableStream:WriteStream|ServerResponse) => void,
 }
