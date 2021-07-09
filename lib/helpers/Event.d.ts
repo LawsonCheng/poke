@@ -1,5 +1,6 @@
 /// <reference types="node" />
 import { WriteStream } from 'fs';
+import { ServerResponse } from 'http';
 import PokeResult from '../interfaces/PokeResult';
 interface EventManager {
     set: (eventName: string, callback: (param?: unknown) => void) => void;
@@ -8,7 +9,7 @@ interface EventManager {
     error: (result: PokeResult) => void;
     data: (chunk: string | unknown) => void;
     stream: {
-        set: (writableStream: WriteStream) => void;
+        set: (writableStream: WriteStream | ServerResponse) => void;
         write: (chunk: string | unknown) => void;
         end: () => void;
     };
