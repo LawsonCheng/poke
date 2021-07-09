@@ -5,7 +5,7 @@ import { ServerResponse } from 'http'
 
 
 export default interface PokeReturn {
-    req: http.ClientRequest|undefined,
+    req?: http.ClientRequest,
     promise : () => Promise<PokeResult>,
     // abort request
     abort : () => void,

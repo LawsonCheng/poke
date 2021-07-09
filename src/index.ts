@@ -18,7 +18,6 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
 
     // declare PokeReturn
     const _return:PokeReturn = {
-        req: undefined,
         promise: () => new Promise<PokeResult>((resolve, reject) => {
             makeRequest(result => {
                 // callback based on error whether error exists
