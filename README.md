@@ -8,11 +8,11 @@ A lightweight and handy JS HTTP Client.
 
 ## Why use Poke?
 
-- [x] Variety of usage
-- [x] Lighweight
-- [x]  Write using Typeescript
-- [x]  Stream support
-- []  WebSocket (Upcoming)
+- [x] Very easy to use
+- [x] Written in Typeescript
+- [x] Lightweight
+- [x] Stream support
+- [ ] WebSocket (Upcoming)
 
 ## Installation
 ```sh
@@ -30,7 +30,7 @@ Poke allows you to make http request in the simplest way. See the following exam
 const poke = require('js.poke')
 
 // Using promise
-poke( 'https://foo.api.com', { path : "/candys" })
+poke( 'https://foo.api.com/candys')
 .promise()
 .then(result => {
     // response body here
@@ -55,14 +55,14 @@ then it returns some methods for you to apply in different scenarios.
 Omit the callback function if you would like to handle the result with `Promise`.
 
 
-### `promise`
+### promise
 ```js
 const poke = require('js.poke')
 
 // Using promise
 poke(hostname , pokeOptions)
 .promise()
-.then(pokeResult => { 
+.then(result => { 
     // do your handling here
     ... 
 })
@@ -73,7 +73,7 @@ poke(hostname , pokeOptions)
 ```
 
 
-### `callback`
+### callback
 ```js
 const poke = require('js.poke')
 // Using callback
@@ -92,7 +92,7 @@ poke(hostname , pokeOptions, result => {
 ```
 
 
-### Form data
+### Form Data
 ```js
 poke(
     'https://httpbin.org/post',
@@ -114,7 +114,7 @@ const poke = require('js.poke')
 poke(hostname , pokeOptions)
 // listen to response retrived
 .on('response', result => {
-    console.log(res)
+    console.log(result)
 })
 // on chunk is recieved
 .on('data', (chunk) => {
@@ -140,7 +140,7 @@ const poke = require('js.poke')
 
 // get image
 poke('https://via.placeholder.com/100x100')
-// write data as a image file
+// write data as an image file
 .pipe(fs.createWriteStream('image.png'))
 ```
 
