@@ -46,7 +46,7 @@ const initEventManager = function <Result>(): EventManager<Result> {
         // set 
         set: (eventName, callback) => {
             // valid event name and callback is a function
-            if(isCallbackEvent(eventName) && /^function$/.test(typeof callback)) {
+            if(isCallbackEvent(eventName)) {
                 // assign listener to listeners container
                 callbacks[eventName] = callback
             }
@@ -81,14 +81,14 @@ const initEventManager = function <Result>(): EventManager<Result> {
             },
             write: (d:unknown) => {
                 // ensure stream exists
-                if(callbacks['stream'] !== undefined && /^function$/.test(typeof callbacks['stream'].write)) {
+                if(callbacks['stream'] !== undefined) {
                     // emit stream end event
                     callbacks['stream'].write(d)
                 }
             },
             end: () => {
                 // ensure stream exists
-                if(callbacks['stream'] !== undefined && /^function$/.test(typeof callbacks['stream'].end)) {
+                if(callbacks['stream'] !== undefined) {
                     // emit stream end event
                     callbacks['stream'].end()
                 }
