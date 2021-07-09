@@ -8,7 +8,7 @@ import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 import Event from './helpers/Event'
 
-function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
+function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult) => void):PokeReturn {
 
     // the flag to indicate whether request is fired already
     let requestFired = false
