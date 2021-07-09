@@ -2,17 +2,22 @@
 import { WriteStream } from 'fs';
 import { ServerResponse } from 'http';
 import { PokeError, PokeSuccess } from '../interfaces/PokeResult';
+declare type CallbackEvent = 'data' | 'error' | 'response' | 'end';
+declare type Stream = WriteStream | ServerResponse;
+declare type EventCallbacksContainer<Result> = {
+    [e in CallbackEvent | 'stream']?: e extends 'data' ? (chunk: unknown) => void : e extends 'error' ? (result: PokeError<Result>) => void : e extends 'response' ? (param?: PokeSuccess<Result>) => void : e extends 'end' ? () => void : e extends 'stream' ? Stream : never;
+};
 interface EventManager<Result> {
-    set: (eventName: string, callback: (param?: unknown) => void) => void;
-    response: (result: PokeSuccess<Result>) => void;
-    end: () => void;
-    error: (result: PokeError<Result>) => void;
-    data: (chunk: string | unknown) => void;
+    set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer<Result>[Event]) => void;
+    response: EventCallbacksContainer<Result>['response'];
+    end: EventCallbacksContainer<Result>['end'];
+    error: EventCallbacksContainer<Result>['error'];
+    data: EventCallbacksContainer<Result>['data'];
     stream: {
-        set: (writableStream: WriteStream | ServerResponse) => void;
-        write: (chunk: string | unknown) => void;
+        set: (writableStream: Stream) => void;
+        write: (chunk: unknown) => void;
         end: () => void;
     };
 }
-declare const Event: <Result>() => EventManager<Result>;
-export default Event;
+declare const initEventManager: <Result>() => EventManager<Result>;
+export default initEventManager;

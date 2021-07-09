@@ -6,7 +6,7 @@ import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
-import Event from './helpers/Event'
+import initEventManager from './helpers/Event'
 import { isProtocol } from './interfaces/Protocol'
 
 function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
@@ -15,7 +15,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
     let requestFired = false
 
     // set event manager
-    const eventManager = Event<Result>()
+    const eventManager = initEventManager<Result>()
 
     // declare PokeReturn
     const _return:PokeReturn<Result> = {
@@ -44,7 +44,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                    if (isPokeError<Result>(result)) {
+                    if (isPokeError<Result>(result) && eventManager.error) {
                         // return response object
                         eventManager.error(result)
                     }
@@ -53,9 +53,11 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                         // emit respnse
                         // NOTE: ts seems not able to infer the result type but it doesn't matter in pratice
                         // NOTE: probably due to the mixing use of genric and typeguard and tsc is not powerful enough for that?
-                        eventManager.response(result as PokeSuccess<Result>)
+                        if (eventManager.response)
+                            eventManager.response(result as PokeSuccess<Result>)
                         // emit end event
-                        eventManager.end()
+                        if (eventManager.end)
+                            eventManager.end()
                     }
                     // end stream
                     eventManager.stream.end()
@@ -143,7 +145,8 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                     // decompression chunk ready, add it to the buffer
                     result.body += d
                     // data event listener exists
-                    eventManager.data(d)
+                    if (eventManager.data)
+                        eventManager.data(d)
                     // emit to stream
                     eventManager.stream.write(d)
                 })
@@ -183,7 +186,8 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             // reject
             requestCallback(error_result)
             // error event listener exists
-            eventManager.error(error_result)
+            if (eventManager.error)
+                eventManager.error(error_result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
