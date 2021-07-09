@@ -69,17 +69,17 @@ const initEventManager = function <Result>(): EventManager<Result> {
                 callbacks['error'](result)
             }
         },
-        data: (chunk:unknown) => {
+        data: (chunk) => {
             if(callbacks['data'] !== undefined) {
                 callbacks['data'](chunk)
             }
         },
         stream: {
-            set: (writableStream:WriteStream|ServerResponse) => {
+            set: (writableStream) => {
                 // save stream
                 callbacks['stream'] = writableStream
             },
-            write: (d:unknown) => {
+            write: (d) => {
                 // ensure stream exists
                 if(callbacks['stream'] !== undefined) {
                     // emit stream end event
