@@ -7,6 +7,7 @@ import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interface
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
 import Event from './helpers/Event'
+import { isProtocol } from './interfaces/Protocol'
 
 function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
 
@@ -85,9 +86,10 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
-        if(!/^https?/.test(protocol)) {
+        if(!isProtocol(protocol)) {
             throw new Error('url must starts with http:// or https://')
         }
+
         // get hostname
         let hostname:string = host.split('://').pop() || ''
         // make sure hostname is valid
@@ -129,7 +131,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             }
         }
         // prepare request and save it to pokeReturn
-        _return.req = _http?.request(payload, res => {
+        _return.req = _http.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
             // does response header indicates that using gzip?
