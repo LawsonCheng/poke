@@ -11,18 +11,12 @@ function isCallbackEvent(input:string): input is CallbackEvent {
 type Stream = WriteStream | ServerResponse
 
 type EventCallbacksContainer<Result> = {
-    [e in CallbackEvent | 'stream']? :
-    e extends 'data'
-      ? (chunk:string) => void
-      : e extends 'error'
-          ? (result:PokeError<Result>) => void
-            :e extends 'response'
-            ? (param?:PokeSuccess<Result>) => void
-                : e extends 'end'
-                    ? () => void
-                    : e extends 'stream'
-                        ? Stream
-                        : never
+    [e in CallbackEvent | 'stream']? : 
+        e extends 'data' ? (chunk:string) => void : 
+        e extends 'error' ? (result:PokeError<Result>) => void :
+        e extends 'response' ? (param?:PokeSuccess<Result>) => void : 
+        e extends 'end' ? () => void : 
+        e extends 'stream' ? Stream : never
 }
 
 interface EventManager <Result>{
