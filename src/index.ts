@@ -3,31 +3,31 @@ import * as http from 'http'
 import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
-import PokeResult, { JSONCallback } from './interfaces/PokeResult'
+import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { toJson } from './helpers/JSON'
-import Event from './helpers/Event'
+import initEventManager from './helpers/Event'
+import { isProtocol } from './interfaces/Protocol'
 
-function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void):PokeReturn {
+function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
 
     // the flag to indicate whether request is fired already
     let requestFired = false
 
     // set event manager
-    const eventManager = Event()
+    const eventManager = initEventManager<Result>()
 
     // declare PokeReturn
-    const _return:PokeReturn = {
-        req: undefined,
-        promise: () => new Promise<PokeResult>((resolve, reject) => {
+    const _return:PokeReturn<Result> = {
+        promise: () => new Promise((resolve, reject) => {
             makeRequest(result => {
                 // callback based on error whether error exists
-                result.error !== undefined ? reject(result) : resolve(result)
+                isPokeSuccess<Result>(result)? resolve(result): reject(result)
             })
         }),
         abort: () => {
             // ensure the destroy function is available
-            if(_return.req !== undefined && _return.req?.destroy !== undefined) {
+            if(_return.req?.destroy !== undefined) {
                 _return.req.destroy()
             }
         },
@@ -42,16 +42,18 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                    if(result.error !== undefined) {
+                    if (isPokeError<Result>(result) && eventManager.error) {
                         // return response object
                         eventManager.error(result)
                     }
                     // no error
                     else {
                         // emit respnse
-                        eventManager.response(result)
+                        if (eventManager.response)
+                            eventManager.response(result as PokeSuccess<Result>)
                         // emit end event
-                        eventManager.end()
+                        if (eventManager.end)
+                            eventManager.end()
                     }
                     // end stream
                     eventManager.stream.end()
@@ -67,7 +69,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             // check request is fired on not
             if(requestFired === false) {
                 // start request
-                makeRequest(result => {
+                makeRequest(() => {
                     // end stream
                     eventManager.stream.end()
                 })
@@ -78,13 +80,14 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult<Result>) => void) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
-        if(!/^https?/.test(protocol)) {
+        if(!isProtocol(protocol)) {
             throw new Error('url must starts with http:// or https://')
         }
+
         // get hostname
         let hostname:string = host.split('://').pop() || ''
         // make sure hostname is valid
@@ -96,7 +99,7 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
         // get hostname by removing the first element
         hostname = full_url.shift() || ''
         // get path from options.path, join the rest elements if options.path does not exist
-        let path:string = options?.path || full_url.join('/')
+        let path = options?.path || full_url.join('/')
         // append querys
         path = `/${path}${Object.keys(options?.query || {}).length > 0 ? stringifyQuery(options?.query || {}) : ''}`
         // determine which http library we should use
@@ -105,7 +108,11 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             https, 
         }[protocol]
         // setup result container
-        const result:PokeResult = {}
+        const result:PokeSuccess<Result> = {
+            body: '',
+            // parse json function
+            json: jsonCallback => jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
+        }
         // setup request payload
         const payload = {
             method : options?.method?.toUpperCase() || 'GET',
@@ -123,11 +130,36 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
             }
         }
         // prepare request and save it to pokeReturn
-        _return.req = _http?.request(payload, res => {
+        _return.req = _http.request(payload, res => {
             // set status code
             result.statusCode = res.statusCode
             // does response header indicates that using gzip?
             const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
+
+            const prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream
+                // data listener
+                .on('data', d => {
+                    // decompression chunk ready, add it to the buffer
+                    result.body += d
+                    // data event listener exists
+                    if (eventManager.data)
+                        eventManager.data(d)
+                    // emit to stream
+                    eventManager.stream.write(d)
+                })
+                // completion listner
+                .on('end', () => {
+                    // save headers
+                    result.headers = res.headers
+                    // callback with result
+                    requestCallback(result)
+                })
+                // error listener
+                .on('error', error => {
+                    // reject
+                    requestCallback({...result, error})
+                })
+
             // is gzip, decompress gzip response first if yes
             if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
                 // get gzip
@@ -135,72 +167,21 @@ function Poke (host:string, options?:PokeOption, callback?:(PokeResult) => void)
                 // pipe response to decompress
                 res.pipe(gunzip)
                 // handles data
-                gunzip
-                // data listener
-                    .on('data', d => {
-                        // decompression chunk ready, add it to the buffer
-                        result.body = result.body || ''
-                        result.body += d
-                        // data event listener exists
-                        eventManager.data(d)
-                        // emit to stream
-                        eventManager.stream.write(d)
-                    })
-                // completion listner
-                    .on('end', () => {
-                    // append parse json function to result body
-                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                        // save headers
-                        result.headers = res.headers
-                        // callback with result
-                        requestCallback(result)
-                    })
-                // error listener
-                    .on('error', error => {
-                        // set error
-                        result.error = error
-                        // reject
-                        requestCallback(result)
-                    })
-            } 
+                prepareStream(gunzip)
+            }
             // handles non-gzip compressed request
             else {
-                res
-                // data listener
-                    .on('data', d => {
-                        result.body = result.body || ''
-                        result.body += d
-                        // data event listener exists
-                        eventManager.data(d)
-                        // emit to stream
-                        eventManager.stream.write(d)
-                    })
-                // completion listener
-                    .on('end', () => {
-                    // append parse json function to result body
-                        result.json = (jsonCallback?:JSONCallback) => toJson((result.body || ''), jsonCallback)
-                        // save headers
-                        result.headers = res.headers
-                        // callback with result
-                        requestCallback(result)
-                    })
-                // error listener
-                    .on('error', error => {
-                    // set error
-                        result.error = error
-                        // reject
-                        requestCallback(result)
-                    })
+                prepareStream(res)
             }
         })
         // error listener
         _return.req?.on('error', error => {
-            // set error
-            result.error = error
+            const error_result = { ...result, error }
             // reject
-            requestCallback(result)
+            requestCallback(error_result)
             // error event listener exists
-            eventManager.error(result)
+            if (eventManager.error)
+                eventManager.error(error_result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
