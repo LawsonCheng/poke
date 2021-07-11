@@ -20,10 +20,16 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
     // declare PokeReturn
     const _return:PokeReturn<Result> = {
         promise: () => new Promise((resolve, reject) => {
-            makeRequest(result => {
-                // callback based on error whether error exists
-                isPokeSuccess<Result>(result)? resolve(result): reject(result)
-            })
+            // ensure request is not fired yet
+            if(requestFired === false) {
+                // note that request is fired
+                requestFired = true
+                // fire request
+                makeRequest(result => {
+                    // callback based on error whether error exists
+                    isPokeSuccess<Result>(result)? resolve(result): reject(result)
+                })
+            }
         }),
         abort: () => {
             // ensure the destroy function is available
@@ -194,6 +200,9 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
 
     // return PokeResult in callback
     if(callback !== undefined) {
+        // note that request is fired
+        requestFired = true
+        // fire request
         makeRequest(callback)
     }
 
