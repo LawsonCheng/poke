@@ -22,8 +22,6 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
         promise: () => new Promise((resolve, reject) => {
             makeRequest(result => {
                 // callback based on error whether error exists
-                // NOTE: ts seems not able to infer the reject part as PokeError but it doesn't matter in pratice
-                // NOTE: probably due to the mixing use of genric and typeguard and tsc is not smart enough for that?
                 isPokeSuccess<Result>(result)? resolve(result): reject(result)
             })
         }),
@@ -51,8 +49,6 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                     // no error
                     else {
                         // emit respnse
-                        // NOTE: ts seems not able to infer the result type but it doesn't matter in pratice
-                        // NOTE: probably due to the mixing use of genric and typeguard and tsc is not powerful enough for that?
                         if (eventManager.response)
                             eventManager.response(result as PokeSuccess<Result>)
                         // emit end event
