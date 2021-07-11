@@ -13,7 +13,7 @@ type Stream = WriteStream | ServerResponse
 type EventCallbacksContainer<Result> = {
     [e in CallbackEvent | 'stream']? :
     e extends 'data'
-      ? (chunk:unknown) => void // FIXME what is the type of chuck should be string?
+      ? (chunk:string) => void
       : e extends 'error'
           ? (result:PokeError<Result>) => void
             :e extends 'response'
