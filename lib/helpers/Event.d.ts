@@ -5,7 +5,7 @@ import { PokeError, PokeSuccess } from '../interfaces/PokeResult';
 declare type CallbackEvent = 'data' | 'error' | 'response' | 'end';
 declare type Stream = WriteStream | ServerResponse;
 declare type EventCallbacksContainer<Result> = {
-    [e in CallbackEvent | 'stream']?: e extends 'data' ? (chunk: unknown) => void : e extends 'error' ? (result: PokeError<Result>) => void : e extends 'response' ? (param?: PokeSuccess<Result>) => void : e extends 'end' ? () => void : e extends 'stream' ? Stream : never;
+    [e in CallbackEvent | 'stream']?: e extends 'data' ? (chunk: string) => void : e extends 'error' ? (result: PokeError<Result>) => void : e extends 'response' ? (param?: PokeSuccess<Result>) => void : e extends 'end' ? () => void : e extends 'stream' ? Stream : never;
 };
 interface EventManager<Result> {
     set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer<Result>[Event]) => void;
