@@ -1,4 +1,4 @@
-export default interface PokeOption {
+export default interface PokeOption<Body> {
     method?: 'POST' | 'GET' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' | 'HEAD' | 'CONNECT' | 'TRACE';
     path?: string;
     port?: number;
@@ -6,7 +6,7 @@ export default interface PokeOption {
     query?: {
         [key: string]: number | boolean | string | null;
     };
-    body?: unknown;
+    body?: Body;
     gzip?: boolean;
     username?: string;
     password?: string;
