@@ -3,9 +3,9 @@ A lightweight and handy JS HTTP Client.
 
 [![npm package](https://nodei.co/npm/js.poke.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/js.poke/)
 
-[![Build-status](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)
-[![Tests](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)
-[![esLint](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)
+[![Build-status](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)
+[![Tests](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)
+[![esLint](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
@@ -194,12 +194,8 @@ poke('https://foo.api.com', options)
 ```
 
 ### The Poke result
-The Poke result is returned with one of the following types `PokeSuccess` and `PokeError`.
-#### PokeSuccess
-`PokeSuccess` contains the `req`, `body`, `statusCode`, `json()` and `headers`. call `json()` returns a promise and parse the body into json object.
-#### PokeError
-if the request is failed, `PokeError` contains `error`(type: `Error`) will be returned.
-
+The poke result contains the `body`, `statusCode` as well as the `error` object if the request is failed.
+You may also call the `json()` to parse the body into json.
 
 ```js
 poke('https://foo.api.com', options)
@@ -218,9 +214,8 @@ poke('https://foo.api.com', options)
     // handle with parsed json
     console.log(json)
 })
-.catch(result => {
+.catch(error => {
     // handler error
-    console.log(result.error);
 })
 ```
 
