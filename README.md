@@ -3,9 +3,9 @@ A lightweight and handy JS HTTP Client.
 
 [![npm package](https://nodei.co/npm/js.poke.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/js.poke/)
 
-[![Build-status](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)
-[![Tests](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)
-[![esLint](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg?branch=main)](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)
+[![Build-status](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/build.yml/badge.svg)
+[![Tests](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/jest.yml/badge.svg)
+[![esLint](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)](https://github.com/LawsonCheng/poke/actions/workflows/eslint.yml/badge.svg)
 [![Dependency Status](https://img.shields.io/david/LawsonCheng/poke.svg?style=flat-square)](https://david-dm.org/LawsonCheng/poke)
 [![Known Vulnerabilities](https://snyk.io/test/npm/js.poke/badge.svg?style=flat-square)](https://snyk.io/test/npm/js.poke)
 
@@ -178,8 +178,8 @@ const options = {
     // will set automatically, you may override the auto-detect value by specify this boolean
     gzip : true, 
     // username and password for Basic Auth
-    username : 'foouser',
-    password : 'foosecret'
+    username : 'foo_user',
+    password : 'foo_secret'
     headers : {
         "content-type" : "application/json"
     },
@@ -193,9 +193,13 @@ const options = {
 poke('https://foo.api.com', options)
 ```
 
-### The Poke result
-The poke result contains the `body`, `statusCode` as well as the `error` object if the request is failed.
-You may also call the `json()` to parse the body into json.
+### PokeResult
+The `PokeResult` is returned with one of the following types `PokeSuccess` and `PokeError`.
+#### PokeSuccess
+`PokeSuccess` contains the `req`, `body`, `statusCode`, `json()` and `headers`. call `json()` returns a promise and parse the body into json object.
+#### PokeError
+if the request is failed, `PokeError` contains `error`(type: `Error`) will be returned.
+
 
 ```js
 poke('https://foo.api.com', options)
@@ -214,20 +218,59 @@ poke('https://foo.api.com', options)
     // handle with parsed json
     console.log(json)
 })
-.catch(error => {
+.catch(result => {
     // handler error
+    console.log(result.error);
 })
 ```
 
+### Authentication
+#### Basic-auth
+Simply put your basic-auth's username and password in PokeOption.
+
+```js
+const options = {
+    method : "GET", 
+    // username and password for Basic Auth
+    username : 'foo_user',
+    password : 'foo_secret',
+}
+
+poke('https://foo.api.com', options)
+.promise()
+.then(result => result.json())
+.then(json => console.log(result))
+.catch(result => console.log(result.error))
+```
+
+#### Bearer auth
+Put the bearer token into header for doing bearer authentication.
+
+
+```js
+const options = {
+    method : "GET", 
+    headers : {
+        'authorization' : `Bearer ${your_bearer_token}`
+    }
+}
+
+poke('https://foo.api.com', options)
+.promise()
+.then(result => result.json())
+.then(json => console.log(result))
+.catch(result => console.log(result.error))
+```
+
 ### Customize header
-To customize the request header, add it into the options .
+Put custom headers attributes into `headers` of PokeOption.
 
 ```js
 poke('https://foo.api.com', {
     ...
     headers : {
+        // put your headers here....
         'content-type' : 'application/json',
-        'authorization' : 'Bearer your_bearer_token'
     }
 })
 ```
