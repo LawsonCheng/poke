@@ -26,11 +26,6 @@ or
 yarn js.poke
 ```
 
-## Use in Deno
-```js
-import poke from "https://deno.land/x/poke";
-```
-
 ## Easy to use!
 Poke allows you to make http request in the simplest way. See the following example:
 
