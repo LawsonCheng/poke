@@ -38,11 +38,8 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             }
         },
         on: (eventName, callback) => {
-            // valid event name?
-            if(/^data|error|response|end$/.test(eventName)) {
-                // assign callback corresponse to event name
-                eventManager.set(eventName, callback)
-            }
+            // assign callback corresponse to event name
+            eventManager.set(eventName, callback)
             // check request is fired on not
             if(requestFired === false) {
                 // fire request
