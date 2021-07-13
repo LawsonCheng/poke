@@ -14,10 +14,6 @@ export type PokeError = PokeSuccess & {
 
 export type PokeResult = PokeSuccess | PokeError
 
-export function isPokeSuccess(input) : input is PokeSuccess{
-    return input.error == undefined
-}
-
 export function isPokeError(input) : input is PokeError{
     return input.error != undefined
 }

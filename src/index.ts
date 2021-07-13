@@ -3,7 +3,7 @@ import * as http from 'http'
 import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
-import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
+import PokeResult, { isPokeError, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { JSONCallback, toJson } from './helpers/JSON'
 import initEventManager from './helpers/Event'
@@ -27,7 +27,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // fire request
                 makeRequest(result => {
                     // callback based on error whether error exists
-                    isPokeSuccess(result)? resolve(result): reject(result)
+                    !isPokeError(result)? resolve(result): reject(result)
                 })
             }
         }),
@@ -45,15 +45,16 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                        // return response object
-                        eventManager.error(result)
-                    if (isPokeError(result) && eventManager.error) {
+                    if (isPokeError(result)) {
+                        if (eventManager.error)
+                            // return response object
+                            eventManager.error(result)
                     }
                     // no error
                     else {
                         // emit respnse
                         if (eventManager.response)
-                            eventManager.response(result as PokeSuccess)
+                            eventManager.response(result)
                         // emit end event
                         if (eventManager.end)
                             eventManager.end()
