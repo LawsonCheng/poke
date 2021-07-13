@@ -5,7 +5,7 @@ import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { isPokeError, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
-import { JSONCallback, toJson } from './helpers/JSON'
+import { JSONCallback, toJson, toJsonWithCallback } from './helpers/JSON'
 import initEventManager from './helpers/Event'
 import { isProtocol } from './interfaces/Protocol'
 
@@ -116,7 +116,9 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         const result:PokeSuccess = {
             body: '',
             // parse json function
-            json: <Result>(jsonCallback?: JSONCallback<Result>) => jsonCallback ? toJson<Result>(result.body, jsonCallback) : toJson<Result>(result.body)
+            json: <Result>(jsonCallback?: JSONCallback<Result>) => jsonCallback
+                ? toJsonWithCallback<Result>(result.body, jsonCallback)
+                : toJson<Result>(result.body)
         }
         // setup request payload
         const payload = {
