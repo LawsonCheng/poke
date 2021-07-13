@@ -21,10 +21,10 @@ type EventCallbacksContainer = {
 
 interface EventManager {
     set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer[Event]) => void,
-    response: EventCallbacksContainer['response'],
-    end: EventCallbacksContainer['end'],
-    error: EventCallbacksContainer['error'],
-    data: EventCallbacksContainer['data'],
+    response: NonNullable<EventCallbacksContainer['response']>,
+    end: NonNullable<EventCallbacksContainer['end']>,
+    error: NonNullable<EventCallbacksContainer['error']>,
+    data: NonNullable<EventCallbacksContainer['data']>,
     stream: {
         set: (writableStream: Stream) => void,
         write: (chunk:unknown) => void, // FIXME what is the type of chuck should be string?

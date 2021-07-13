@@ -46,18 +46,15 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 makeRequest(result => {
                     // error exists AND error event listener exists
                     if (isPokeError(result)) {
-                        if (eventManager.error)
-                            // return response object
-                            eventManager.error(result)
+                        // return response object
+                        eventManager.error(result)
                     }
                     // no error
                     else {
                         // emit respnse
-                        if (eventManager.response)
-                            eventManager.response(result)
+                        eventManager.response(result)
                         // emit end event
-                        if (eventManager.end)
-                            eventManager.end()
+                        eventManager.end()
                     }
                     // end stream
                     eventManager.stream.end()
@@ -149,8 +146,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                     // decompression chunk ready, add it to the buffer
                     result.body += d
                     // data event listener exists
-                    if (eventManager.data)
-                        eventManager.data(d)
+                    eventManager.data(d)
                     // emit to stream
                     eventManager.stream.write(d)
                 })
@@ -187,8 +183,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             // reject
             requestCallback(error_result)
             // error event listener exists
-            if (eventManager.error)
-                eventManager.error(error_result)
+            eventManager.error(error_result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
