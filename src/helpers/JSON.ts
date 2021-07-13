@@ -1,4 +1,6 @@
-import { JSONCallback } from '../interfaces/PokeResult'
+export interface JSONCallback<Result> {
+    (error:Error | null, json: Result | null): unknown
+}
 
 export function toJson <Result>(jsonString:string):Promise<Result>;
 export function toJson <Result>(jsonString:string, callback:JSONCallback<Result>):void

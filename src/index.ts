@@ -5,20 +5,20 @@ import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
-import { toJson } from './helpers/JSON'
+import { JSONCallback, toJson } from './helpers/JSON'
 import initEventManager from './helpers/Event'
 import { isProtocol } from './interfaces/Protocol'
 
-function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
+function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult) => void):PokeReturn {
 
     // the flag to indicate whether request is fired already
     let requestFired = false
 
     // set event manager
-    const eventManager = initEventManager<Result>()
+    const eventManager = initEventManager()
 
     // declare PokeReturn
-    const _return:PokeReturn<Result> = {
+    const _return:PokeReturn = {
         promise: () => new Promise((resolve, reject) => {
             // ensure request is not fired yet
             if(requestFired === false) {
@@ -27,7 +27,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                 // fire request
                 makeRequest(result => {
                     // callback based on error whether error exists
-                    isPokeSuccess<Result>(result)? resolve(result): reject(result)
+                    isPokeSuccess(result)? resolve(result): reject(result)
                 })
             }
         }),
@@ -45,15 +45,15 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                 // fire request
                 makeRequest(result => {
                     // error exists AND error event listener exists
-                    if (isPokeError<Result>(result) && eventManager.error) {
                         // return response object
                         eventManager.error(result)
+                    if (isPokeError(result) && eventManager.error) {
                     }
                     // no error
                     else {
                         // emit respnse
                         if (eventManager.response)
-                            eventManager.response(result as PokeSuccess<Result>)
+                            eventManager.response(result as PokeSuccess)
                         // emit end event
                         if (eventManager.end)
                             eventManager.end()
@@ -83,7 +83,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult<Result>) => void) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
@@ -110,11 +110,12 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             http,
             https, 
         }[protocol]
+
         // setup result container
-        const result:PokeSuccess<Result> = {
+        const result:PokeSuccess = {
             body: '',
             // parse json function
-            json: jsonCallback => jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
+            json: <Result>(jsonCallback?: JSONCallback<Result>) => jsonCallback ? toJson<Result>(result.body, jsonCallback) : toJson<Result>(result.body)
         }
         // setup request payload
         const payload = {

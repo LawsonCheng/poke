@@ -4,13 +4,13 @@ import { WriteStream } from 'fs'
 import { ServerResponse } from 'http'
 
 
-export default interface PokeReturn<Result> {
+export default interface PokeReturn {
     req?: http.ClientRequest,
-    promise : () => Promise<PokeSuccess<Result>>,
+    promise : () => Promise<PokeSuccess>,
     // abort request
     abort : () => void,
     // event listeners
-    on: (eventName:'data'|'error'|'response'|'end', callback:(result?:unknown) => void) => PokeReturn<Result>,
+    on: (eventName:'data'|'error'|'response'|'end', callback:(result?:unknown) => void) => PokeReturn,
     /* ----- stream ----- */
     pipe: (writableStream:WriteStream|ServerResponse) => void,
 }
