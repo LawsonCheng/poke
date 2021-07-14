@@ -35,17 +35,10 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         on: (eventName, callback) => {
             // assign callback corresponse to event name
             eventManager.set(eventName, callback)
-            // fire request
-            makeRequest()
             return _return
         },
-        pipe: (stream) => {
-            // set write stream
-            eventManager.stream(stream)
-            // start request
-            makeRequest()
-            // noted that request is fired
-        }
+        // set write stream
+        pipe: eventManager.stream
     }
 
     // handler
