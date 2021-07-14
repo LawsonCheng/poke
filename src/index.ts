@@ -20,16 +20,11 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
     // declare PokeReturn
     const _return:PokeReturn = {
         promise: () => new Promise((resolve, reject) => {
-            // ensure request is not fired yet
-            if(requestFired === false) {
-                // note that request is fired
-                requestFired = true
-                // fire request
-                makeRequest(result => {
-                    // callback based on error whether error exists
-                    !isPokeError(result)? resolve(result): reject(result)
-                })
-            }
+            // fire request
+            makeRequest(result => {
+                // callback based on error whether error exists
+                !isPokeError(result)? resolve(result): reject(result)
+            })
         }),
         abort: () => {
             // ensure the destroy function is available
@@ -40,43 +35,38 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         on: (eventName, callback) => {
             // assign callback corresponse to event name
             eventManager.set(eventName, callback)
-            // check request is fired on not
-            if(requestFired === false) {
-                // fire request
-                makeRequest(result => {
-                    // error exists AND error event listener exists
-                    if (isPokeError(result)) {
-                        // return response object
-                        eventManager.error(result)
-                    }
-                    // no error
-                    else {
-                        // emit respnse
-                        eventManager.response(result)
-                        // emit end event
-                        eventManager.end()
-                    }
-                })
-                // noted that request is fired
-                requestFired = true
-            }
+            // fire request
+            makeRequest(result => {
+                // error exists AND error event listener exists
+                if (isPokeError(result)) {
+                    // return response object
+                    eventManager.error(result)
+                }
+                // no error
+                else {
+                    // emit respnse
+                    eventManager.response(result)
+                    // emit end event
+                    eventManager.end()
+                }
+            })
             return _return
         },
         pipe: (stream) => {
             // set write stream
             eventManager.stream(stream)
-            // check request is fired on not
-            if(requestFired === false) {
-                // start request
-                makeRequest(() => {})
-                // noted that request is fired
-                requestFired = true
-            }
+            // start request
+            makeRequest(() => {})
+            // noted that request is fired
         }
     }
 
     // handler
     const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+        // if request is already fired, skip
+        if(requestFired === true) return
+        // noted that request is fired
+        requestFired = true
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
