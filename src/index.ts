@@ -36,33 +36,20 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             // assign callback corresponse to event name
             eventManager.set(eventName, callback)
             // fire request
-            makeRequest(result => {
-                // error exists AND error event listener exists
-                if (isPokeError(result)) {
-                    // return response object
-                    eventManager.error(result)
-                }
-                // no error
-                else {
-                    // emit respnse
-                    eventManager.response(result)
-                    // emit end event
-                    eventManager.end()
-                }
-            })
+            makeRequest()
             return _return
         },
         pipe: (stream) => {
             // set write stream
             eventManager.stream(stream)
             // start request
-            makeRequest(() => {})
+            makeRequest()
             // noted that request is fired
         }
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void = () => {}) {
         // if request is already fired, skip
         if(requestFired === true) return
         // noted that request is fired
@@ -137,13 +124,23 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 .on('end', () => {
                     // save headers
                     result.headers = res.headers
+                    // end event listener exists
+                    eventManager.end()
+                    // emit respnse
+                    eventManager.response(result)
                     // callback with result
                     requestCallback(result)
                 })
                 // error listener
                 .on('error', error => {
+                    const error_result = { ...result, error }
+                    // FIXME we need to call "end" too on error, right?
+                    // end event listener exists
+                    eventManager.end()
+                    // error event listener exists
+                    eventManager.error(error_result)
                     // reject
-                    requestCallback({...result, error})
+                    requestCallback(error_result)
                 })
 
             // is gzip, decompress gzip response first if yes
