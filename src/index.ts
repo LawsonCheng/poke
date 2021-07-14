@@ -56,8 +56,6 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                         // emit end event
                         eventManager.end()
                     }
-                    // end stream
-                    eventManager.stream.end()
                 })
                 // noted that request is fired
                 requestFired = true
@@ -66,14 +64,11 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         },
         pipe: (stream) => {
             // set write stream
-            eventManager.stream.set(stream)
+            eventManager.stream(stream)
             // check request is fired on not
             if(requestFired === false) {
                 // start request
-                makeRequest(() => {
-                    // end stream
-                    eventManager.stream.end()
-                })
+                makeRequest(() => {})
                 // noted that request is fired
                 requestFired = true
             }
@@ -147,8 +142,6 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                     result.body += d
                     // data event listener exists
                     eventManager.data(d)
-                    // emit to stream
-                    eventManager.stream.write(d)
                 })
                 // completion listner
                 .on('end', () => {
