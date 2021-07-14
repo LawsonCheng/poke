@@ -42,7 +42,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void = () => {}) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
         // if request is already fired, skip
         if(requestFired === true) return
         // noted that request is fired
