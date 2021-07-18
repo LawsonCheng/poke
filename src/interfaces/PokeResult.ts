@@ -1,27 +1,20 @@
 import { IncomingHttpHeaders } from 'http'
+import { JSONCallback } from '../helpers/JSON'
 
-export interface JSONCallback<Result> {
-    (error:Error | null, json: Result | null): unknown
-}
-
-export interface PokeSuccess<Result> {
+export interface PokeSuccess {
     statusCode? : number
     body : string
     headers? : Headers|IncomingHttpHeaders
-    json : (jsonCallback?:JSONCallback<Result>) => void | Promise<Result>
+    json : <Result>(jsonCallback?:JSONCallback<Result>) => void | Promise<Result>
 }
 
-export type PokeError<Result> = PokeSuccess<Result> & {
+export type PokeError = PokeSuccess & {
     error : Error
 }
 
-export type PokeResult<Result> = PokeSuccess<Result> | PokeError<Result>
+export type PokeResult = PokeSuccess | PokeError
 
-export function isPokeSuccess<Result>(input) : input is PokeSuccess<Result>{
-    return input.error == undefined
-}
-
-export function isPokeError<Result>(input) : input is PokeError<Result>{
+export function isPokeError(input) : input is PokeError{
     return input.error != undefined
 }
 
