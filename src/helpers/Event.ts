@@ -39,11 +39,7 @@ interface EventManager {
     end: NonNullable<EventCallbacksContainer['end']>,
     error: NonNullable<EventCallbacksContainer['error']>,
     data: NonNullable<EventCallbacksContainer['data']>,
-    stream: {
-        set: (writableStream: Stream) => void,
-        write: (chunk:unknown) => void, // FIXME what is the type of chuck should be string?
-        end: () => void,
-    }
+    stream: (writableStream: Stream) => void
 }
 
 /**
@@ -74,6 +70,11 @@ const initEventManager = function (): EventManager {
                 // emit end event
                 callbacks['end']()
             }
+            // ensure stream exists
+            if(callbacks['stream'] !== undefined) {
+                // emit stream end event
+                callbacks['stream'].end()
+            }
         },
         error: (result) => {
             if(callbacks['error'] !== undefined) {
@@ -85,26 +86,15 @@ const initEventManager = function (): EventManager {
             if(callbacks['data'] !== undefined) {
                 callbacks['data'](chunk)
             }
-        },
-        stream: {
-            set: (writableStream) => {
-                // save stream
-                callbacks['stream'] = writableStream
-            },
-            write: (d) => {
-                // ensure stream exists
-                if(callbacks['stream'] !== undefined) {
-                    // emit stream end event
-                    callbacks['stream'].write(d)
-                }
-            },
-            end: () => {
-                // ensure stream exists
-                if(callbacks['stream'] !== undefined) {
-                    // emit stream end event
-                    callbacks['stream'].end()
-                }
+            // ensure stream exists
+            if(callbacks['stream'] !== undefined) {
+                // emit stream end event
+                callbacks['stream'].write(chunk)
             }
+        },
+        stream: (writableStream) => {
+            // save stream
+            callbacks['stream'] = writableStream
         }
     }
 }
