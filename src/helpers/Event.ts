@@ -2,8 +2,18 @@ import { WriteStream } from 'fs'
 import { ServerResponse } from 'http'
 import { PokeError, PokeSuccess } from '../interfaces/PokeResult'
 
+
+/**
+ * Callback event name
+ */
 type CallbackEvent = 'data' | 'error' | 'response' | 'end'
 
+/**
+ * 
+ * Determines whether the event name is a valid callback event
+ * @param input:string
+ * @returns boolean
+ */
 function isCallbackEvent(input:string): input is CallbackEvent {
     return /^data|error|response|end$/.test(input)
 }
@@ -19,6 +29,10 @@ type EventCallbacksContainer = {
         e extends 'stream' ? Stream : never
 }
 
+/**
+ * EventManager
+ * Stores method that handles difference events
+ */
 interface EventManager {
     set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer[Event]) => void,
     response: NonNullable<EventCallbacksContainer['response']>,
@@ -32,6 +46,10 @@ interface EventManager {
     }
 }
 
+/**
+ * Initiate and return an EventManager
+ * @returns EventManager
+ */
 const initEventManager = function (): EventManager {
     // the place to stores those callbacks
     const callbacks: EventCallbacksContainer = {}
