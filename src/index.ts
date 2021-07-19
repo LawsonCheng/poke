@@ -3,33 +3,37 @@ import * as http from 'http'
 import * as zlib from 'zlib'
 import PokeOption from './interfaces/PokeOption'
 import PokeReturn from './interfaces/PokeReturn'
-import PokeResult, { isPokeError, isPokeSuccess, PokeSuccess } from './interfaces/PokeResult'
+import PokeResult, { isPokeError, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
-import { toJson } from './helpers/JSON'
+import { JSONCallback, toJson, toJsonWithCallback } from './helpers/JSON'
 import initEventManager from './helpers/Event'
 import { isProtocol } from './interfaces/Protocol'
 
-function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult<Result>) => void):PokeReturn<Result> {
+/**
+ * Usage: https://github.com/LawsonCheng/poke/blob/main/README.md
+ * 
+ * @param host:string The destination of your request pointing to.
+ * @param options Specify your method, body, headers etc to customize your request
+ * @param callback Callback(result:PokeResult) will be called when the request is completed
+ * 
+ * @returns Promise<PokeResult> | .on('response'|'end'|'data'|'error', callback(result:any)) | pipe(stream:WriteStream)
+ */
+function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeResult) => void):PokeReturn {
 
     // the flag to indicate whether request is fired already
     let requestFired = false
 
     // set event manager
-    const eventManager = initEventManager<Result>()
+    const eventManager = initEventManager()
 
     // declare PokeReturn
-    const _return:PokeReturn<Result> = {
+    const _return:PokeReturn = {
         promise: () => new Promise((resolve, reject) => {
-            // ensure request is not fired yet
-            if(requestFired === false) {
-                // note that request is fired
-                requestFired = true
-                // fire request
-                makeRequest(result => {
-                    // callback based on error whether error exists
-                    isPokeSuccess<Result>(result)? resolve(result): reject(result)
-                })
-            }
+            // fire request
+            makeRequest(result => {
+                // callback based on error whether error exists
+                !isPokeError(result)? resolve(result): reject(result)
+            })
         }),
         abort: () => {
             // ensure the destroy function is available
@@ -38,55 +42,20 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             }
         },
         on: (eventName, callback) => {
-            // valid event name?
-            if(/^data|error|response|end$/.test(eventName)) {
-                // assign callback corresponse to event name
-                eventManager.set(eventName, callback)
-            }
-            // check request is fired on not
-            if(requestFired === false) {
-                // fire request
-                makeRequest(result => {
-                    // error exists AND error event listener exists
-                    if (isPokeError<Result>(result) && eventManager.error) {
-                        // return response object
-                        eventManager.error(result)
-                    }
-                    // no error
-                    else {
-                        // emit respnse
-                        if (eventManager.response)
-                            eventManager.response(result as PokeSuccess<Result>)
-                        // emit end event
-                        if (eventManager.end)
-                            eventManager.end()
-                    }
-                    // end stream
-                    eventManager.stream.end()
-                })
-                // noted that request is fired
-                requestFired = true
-            }
+            // assign callback corresponse to event name
+            eventManager.set(eventName, callback)
             return _return
         },
-        pipe: (stream) => {
-            // set write stream
-            eventManager.stream.set(stream)
-            // check request is fired on not
-            if(requestFired === false) {
-                // start request
-                makeRequest(() => {
-                    // end stream
-                    eventManager.stream.end()
-                })
-                // noted that request is fired
-                requestFired = true
-            }
-        }
+        // set write stream
+        pipe: eventManager.stream
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult<Result>) => void) {
+    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+        // if request is already fired, skip
+        if(requestFired === true) return
+        // noted that request is fired
+        requestFired = true
         // get protocol
         const protocol = host.substr(0, host.indexOf(':'))
         // check protocol
@@ -113,11 +82,14 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             http,
             https, 
         }[protocol]
+
         // setup result container
-        const result:PokeSuccess<Result> = {
+        const result:PokeSuccess = {
             body: '',
             // parse json function
-            json: jsonCallback => jsonCallback? toJson(result.body, jsonCallback) : toJson(result.body)
+            json: <Result>(jsonCallback?: JSONCallback<Result>) => jsonCallback
+                ? toJsonWithCallback<Result>(result.body, jsonCallback)
+                : toJson<Result>(result.body)
         }
         // setup request payload
         const payload = {
@@ -148,22 +120,29 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
                     // decompression chunk ready, add it to the buffer
                     result.body += d
                     // data event listener exists
-                    if (eventManager.data)
-                        eventManager.data(d)
-                    // emit to stream
-                    eventManager.stream.write(d)
+                    eventManager.data(d)
                 })
                 // completion listner
                 .on('end', () => {
                     // save headers
                     result.headers = res.headers
+                    // end event listener exists
+                    eventManager.end()
+                    // emit respnse
+                    eventManager.response(result)
                     // callback with result
                     requestCallback(result)
                 })
                 // error listener
                 .on('error', error => {
+                    const error_result = { ...result, error }
+                    // FIXME we need to call "end" too on error, right?
+                    // end event listener exists
+                    eventManager.end()
+                    // error event listener exists
+                    eventManager.error(error_result)
                     // reject
-                    requestCallback({...result, error})
+                    requestCallback(error_result)
                 })
 
             // is gzip, decompress gzip response first if yes
@@ -186,8 +165,7 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
             // reject
             requestCallback(error_result)
             // error event listener exists
-            if (eventManager.error)
-                eventManager.error(error_result)
+            eventManager.error(error_result)
         })
         // has body
         if(options?.body !== undefined && /^post|put|delete$/i.test(options.method || 'GET')) {
@@ -200,8 +178,6 @@ function Poke<Body, Result>(host:string, options?:PokeOption<Body>, callback?:(p
 
     // return PokeResult in callback
     if(callback !== undefined) {
-        // note that request is fired
-        requestFired = true
         // fire request
         makeRequest(callback)
     }
