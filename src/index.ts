@@ -178,10 +178,10 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
 
     // return PokeResult in callback
     if(callback !== undefined) {
-        // note that request is fired
-        requestFired = true
         // fire request
         makeRequest(callback)
+        // note that request is fired
+        requestFired = true
     }
 
     return _return
