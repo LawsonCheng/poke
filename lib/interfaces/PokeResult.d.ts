@@ -1,18 +1,34 @@
 /// <reference types="node" />
 import { IncomingHttpHeaders } from 'http';
-export interface JSONCallback<Result> {
-    (error: Error | null, json: Result | null): unknown;
-}
-export interface PokeSuccess<Result> {
+import { JSONCallback } from '../helpers/JSON';
+/**
+ * PokeSuccess is returned when the request is succeeded.
+ * @property statusCode:number
+ * @property body:string
+ * @property headers:Headers|IncomingHttpHeaders
+ * @property json(jsonCallback:(JSON)) => void|Promise
+ */
+export interface PokeSuccess {
     statusCode?: number;
     body: string;
     headers?: Headers | IncomingHttpHeaders;
-    json: (jsonCallback?: JSONCallback<Result>) => void | Promise<Result>;
+    json: <Result>(jsonCallback?: JSONCallback<Result>) => void | Promise<Result>;
 }
-export declare type PokeError<Result> = PokeSuccess<Result> & {
+/**
+ * PokeError is returned when the request is failed.
+ * It contains an `Error` object.
+ */
+export declare type PokeError = PokeSuccess & {
     error: Error;
 };
-export declare type PokeResult<Result> = PokeSuccess<Result> | PokeError<Result>;
-export declare function isPokeSuccess<Result>(input: any): input is PokeSuccess<Result>;
-export declare function isPokeError<Result>(input: any): input is PokeError<Result>;
+/**
+ * PokeResult consist of PokeSuccess or PokeError
+ */
+export declare type PokeResult = PokeSuccess | PokeError;
+/**
+ * Determines the result is PokeError or not
+ * @param input:PokeError|PokeSuccess
+ * @returns Boolean
+ */
+export declare function isPokeError(input: any): input is PokeError;
 export default PokeResult;
