@@ -10,21 +10,21 @@ function isCallbackEvent(input:string): input is CallbackEvent {
 
 type Stream = WriteStream | ServerResponse
 
-type EventCallbacksContainer<Result> = {
+type EventCallbacksContainer = {
     [e in CallbackEvent | 'stream']? : 
         e extends 'data' ? (chunk:string) => void : 
-        e extends 'error' ? (result:PokeError<Result>) => void :
-        e extends 'response' ? (param?:PokeSuccess<Result>) => void : 
+        e extends 'error' ? (result:PokeError) => void :
+        e extends 'response' ? (param?:PokeSuccess) => void : 
         e extends 'end' ? () => void : 
         e extends 'stream' ? Stream : never
 }
 
-interface EventManager <Result>{
-    set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer<Result>[Event]) => void,
-    response: EventCallbacksContainer<Result>['response'],
-    end: EventCallbacksContainer<Result>['end'],
-    error: EventCallbacksContainer<Result>['error'],
-    data: EventCallbacksContainer<Result>['data'],
+interface EventManager {
+    set: <Event extends CallbackEvent>(eventName: Event, callback: EventCallbacksContainer[Event]) => void,
+    response: NonNullable<EventCallbacksContainer['response']>,
+    end: NonNullable<EventCallbacksContainer['end']>,
+    error: NonNullable<EventCallbacksContainer['error']>,
+    data: NonNullable<EventCallbacksContainer['data']>,
     stream: {
         set: (writableStream: Stream) => void,
         write: (chunk:unknown) => void, // FIXME what is the type of chuck should be string?
@@ -32,9 +32,9 @@ interface EventManager <Result>{
     }
 }
 
-const initEventManager = function <Result>(): EventManager<Result> {
+const initEventManager = function (): EventManager {
     // the place to stores those callbacks
-    const callbacks: EventCallbacksContainer<Result> = {}
+    const callbacks: EventCallbacksContainer = {}
     // return append callback methods and event callback methods
     return {
         // set 
