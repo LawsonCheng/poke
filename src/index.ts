@@ -180,8 +180,6 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
     if(callback !== undefined) {
         // fire request
         makeRequest(callback)
-        // note that request is fired
-        requestFired = true
     }
 
     return _return
