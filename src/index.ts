@@ -159,6 +159,17 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 prepareStream(res)
             }
         })
+        // timeout option is valid and response does not yet to come
+        if(options?.timeout !== undefined && !isNaN(options?.timeout) && options?.timeout > 0 && result.statusCode === undefined) {
+            // setup timeout function
+            setTimeout(() => {
+                // destroy is not ne
+                if(_return.req?.end !== undefined) {
+                    // destroy request, error | close event should be emitted automatically
+                    _return.req.destroy()
+                }
+            }, options.timeout)
+        }
         // error listener
         _return.req?.on('error', error => {
             const error_result = { ...result, error }
