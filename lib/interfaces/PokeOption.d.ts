@@ -8,6 +8,7 @@ export default interface PokeOption<Body> {
     };
     body?: Body;
     gzip?: boolean;
+    timeout?: number;
     username?: string;
     password?: string;
 }
