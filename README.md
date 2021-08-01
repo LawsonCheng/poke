@@ -177,13 +177,18 @@ const options = {
     port : 3001,
     // will set automatically, you may override the auto-detect value by specify this boolean
     gzip : true, 
+    // in millisecond, if timeout is set and theer is no response return before timeout, request will abort
+    timeout : 1000
     // username and password for Basic Auth
     username : 'foo_user',
     password : 'foo_secret'
+    // customize your header here
     headers : {
         "content-type" : "application/json"
     },
+    // will parse your query object to query string automatically
     query : { page : 3 }
+    // form body
     body : JSON.stringify({
         first_name : "Poke",
         last_name : "You"
