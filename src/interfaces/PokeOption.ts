@@ -6,7 +6,7 @@ export default interface PokeOption<Body> {
     query? : {[key:string]:number|boolean|string|null}
     body? : Body
     gzip? : boolean
-    timeout : number,
+    timeout? : number,
     // for the convinience of Basic auth
     username? : string
     password? : string
