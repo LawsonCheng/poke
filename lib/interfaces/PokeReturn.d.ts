@@ -8,5 +8,5 @@ export default interface PokeReturn {
     promise: () => Promise<PokeSuccess>;
     abort: () => void;
     on: (eventName: 'data' | 'error' | 'response' | 'end', callback: (result?: unknown) => void) => PokeReturn;
-    pipe: (writableStream: WriteStream | ServerResponse) => void;
+    pipe: (writableStream: WriteStream | ServerResponse) => WriteStream | ServerResponse;
 }
