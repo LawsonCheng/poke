@@ -12,5 +12,5 @@ export default interface PokeReturn {
     // event listeners
     on: (eventName:'data'|'error'|'response'|'end', callback:(result?:unknown) => void) => PokeReturn,
     /* ----- stream ----- */
-    pipe: (writableStream:WriteStream|ServerResponse) => void,
+    pipe: (writableStream:WriteStream|ServerResponse) => WriteStream|ServerResponse,
 }

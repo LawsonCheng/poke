@@ -47,11 +47,18 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             return _return
         },
         // set write stream
-        pipe: eventManager.stream
+        pipe: (stream) => {
+            // listen to stream event
+            eventManager.stream(stream)
+            // fire request
+            makeRequest()
+            // return Write Stream
+            return stream
+        }
     }
 
     // handler
-    const makeRequest = function(requestCallback:(pokeResult: PokeResult) => void) {
+    const makeRequest = function(requestCallback?:(pokeResult: PokeResult) => void) {
         // if request is already fired, skip
         if(requestFired === true) return
         // noted that request is fired
@@ -118,7 +125,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // data listener
                 .on('data', d => {
                     // decompression chunk ready, add it to the buffer
-                    result.body += d
+                    result.body = result.body.concat(Buffer.isBuffer(d) ? d.toString() : d)
                     // data event listener exists
                     eventManager.data(d)
                 })
@@ -131,20 +138,22 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                     // emit respnse
                     eventManager.response(result)
                     // callback with result
-                    requestCallback(result)
+                    if(requestCallback !== undefined) {
+                        requestCallback(result)
+                    }
                 })
                 // error listener
                 .on('error', error => {
                     const error_result = { ...result, error }
-                    // FIXME we need to call "end" too on error, right?
                     // end event listener exists
                     eventManager.end()
                     // error event listener exists
                     eventManager.error(error_result)
                     // reject
-                    requestCallback(error_result)
+                    if(requestCallback !== undefined) {
+                        requestCallback(error_result)
+                    }
                 })
-
             // is gzip, decompress gzip response first if yes
             if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
                 // get gzip
@@ -174,7 +183,10 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
         _return.req?.on('error', error => {
             const error_result = { ...result, error }
             // reject
-            requestCallback(error_result)
+            // reject
+            if(requestCallback !== undefined) {
+                requestCallback(error_result)
+            }
             // error event listener exists
             eventManager.error(error_result)
         })
