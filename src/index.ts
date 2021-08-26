@@ -47,7 +47,12 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
             return _return
         },
         // set write stream
-        pipe: eventManager.stream
+        pipe: (stream) => {
+            // listen to stream event
+            eventManager.stream(stream)
+            // fire request
+            makeRequest(() => {})
+        }
     }
 
     // handler
@@ -118,7 +123,7 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                 // data listener
                 .on('data', d => {
                     // decompression chunk ready, add it to the buffer
-                    result.body += d
+                    result.body = result.body.concat(Buffer.isBuffer(d) ? d.toString() : d)
                     // data event listener exists
                     eventManager.data(d)
                 })
@@ -144,7 +149,6 @@ function Poke<Body>(host:string, options?:PokeOption<Body>, callback?:(pr: PokeR
                     // reject
                     requestCallback(error_result)
                 })
-
             // is gzip, decompress gzip response first if yes
             if((options?.gzip !== undefined && options?.gzip === true) || isGzip === true) {
                 // get gzip
