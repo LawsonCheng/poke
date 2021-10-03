@@ -20,8 +20,9 @@ export function toJsonWithCallback<Result>(jsonString:string, callback: JSONCall
         // callback with error:null, result:json
         callback(null, json)
     } catch (error) {
+        const _error = error as Error
         // callback with error:null, result:json
-        callback(error, null)
+        callback(_error, null)
     }
 }
 
