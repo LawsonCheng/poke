@@ -37,6 +37,7 @@
   "homepage": "https://github.com/LawsonCheng/poke#readme",
   "dependencies": {
     "@types/node": "^16.3.0",
+    "ts-node": "^10.4.0",
     "zlib": "^1.0.5"
   }
 }

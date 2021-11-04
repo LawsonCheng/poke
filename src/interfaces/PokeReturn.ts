@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 import { PokeSuccess } from './PokeResult'
 import * as http from 'http'
 import { WriteStream } from 'fs'
