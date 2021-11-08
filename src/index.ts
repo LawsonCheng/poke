@@ -4,7 +4,6 @@ import * as zlib from 'zlib'
 import { WriteStream } from 'fs'
 import { ServerResponse } from 'http'
 import PokeOption from './interfaces/PokeOption'
-import PokeReturn from './interfaces/PokeReturn'
 import PokeResult, { isPokeError, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { JSONCallback, toJson, toJsonWithCallback } from './helpers/JSON'
@@ -109,49 +108,52 @@ export class PokeClass extends EventManagerClass {
             }
         }
         // fire request
-        this.req = _http?.request(payload, res => {
-            // save status code
-            result.statusCode = res.statusCode
-            // determine whether needs encoding in gzip
-            const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
-            // setup stream preparation
-            const _prepareStream = (source:zlib.Gunzip|http.IncomingMessage) => {
-                // handle stream
-                this.prepareStream(source)
-                // listen to data event
-                .on('data', d => {
-                    result.body = result.body.concat(Buffer.isBuffer(d) ? d.toString() : d)
-                    this.data(d)
-                })
-                // listen to ent event
-                .on('end', () => {
-                    result.headers  = res.headers
-                    this.end()
-                    this.response(result)
-                    if(requestCallback !== undefined) {
-                        requestCallback(result)
-                    }
-                })
-                // listen to error
-                .on('error', (error) => {
-                    const error_result = { ...result, error }
-                    this.end()
-                    this.response(result)
-                    if(requestCallback !== undefined) {
-                        requestCallback(error_result)
-                    }
-                })
+        this.req = _http?.request(
+            payload, 
+            res => {
+                // save status code
+                result.statusCode = res.statusCode
+                // determine whether needs encoding in gzip
+                const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
+                // setup stream preparation
+                const _prepareStream = (source:zlib.Gunzip|http.IncomingMessage) => {
+                    // handle stream
+                    this.prepareStream(source)
+                        // listen to data event
+                        .on('data', d => {
+                            result.body = result.body.concat(Buffer.isBuffer(d) ? d.toString() : d)
+                            this.data(d)
+                        })
+                        // listen to ent event
+                        .on('end', () => {
+                            result.headers  = res.headers
+                            this.end()
+                            this.response(result)
+                            if(requestCallback !== undefined) {
+                                requestCallback(result)
+                            }
+                        })
+                        // listen to error
+                        .on('error', (error) => {
+                            const error_result = { ...result, error }
+                            this.end()
+                            this.response(result)
+                            if(requestCallback !== undefined) {
+                                requestCallback(error_result)
+                            }
+                        })
+                }
+                // handling gzip
+                if((this.options?.gzip !== undefined && this.options?.gzip === true) || isGzip === true) {
+                    const gunzip = zlib.createGunzip()
+                    res.pipe(gunzip)
+                    // handles data
+                    _prepareStream(gunzip)
+                }else {
+                    _prepareStream(res)
+                }
             }
-            // handling gzip
-            if((this.options?.gzip !== undefined && this.options?.gzip === true) || isGzip === true) {
-                const gunzip = zlib.createGunzip()
-                res.pipe(gunzip)
-                // handles data
-                _prepareStream(gunzip)
-            }else {
-                _prepareStream(res)
-            }
-        })
+        )
         // do we need to timeout the request?
         if(this.options?.timeout !== undefined && !isNaN(this.options?.timeout) && this.options?.timeout > 0 && result.statusCode === undefined) {
             // setup timeout function
@@ -211,8 +213,8 @@ export class PokeClass extends EventManagerClass {
      * @returns 
      */
     public on = (eventName:string, callback:() => void):this => {
-        this.set(eventName, callback); 
-        return this;  
+        this.set(eventName, callback)
+        return this
     }
 
     /**
@@ -221,12 +223,12 @@ export class PokeClass extends EventManagerClass {
      * @returns 
      */
     public pipe = (stream):WriteStream|ServerResponse => {
-         // listen to stream event
-         this.stream(stream)
-         // fire request
-         this.makeRequest()
-         // return Write Stream
-         return stream
+        // listen to stream event
+        this.stream(stream)
+        // fire request
+        this.makeRequest()
+        // return Write Stream
+        return stream
     }
     
 }
