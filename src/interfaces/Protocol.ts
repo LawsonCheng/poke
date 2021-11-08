@@ -1,3 +1,4 @@
+/* eslint-disable linebreak-style */
 type Protocol = 'http' | 'https';
 
 /**
@@ -7,6 +8,8 @@ type Protocol = 'http' | 'https';
  * 
  * @returns Boolean
  */
+
+
 export function isProtocol(input: string): input is Protocol {
     return /^https?/.test(input)
 }
