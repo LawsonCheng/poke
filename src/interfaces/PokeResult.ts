@@ -33,8 +33,8 @@ export type PokeResult = PokeSuccess | PokeError
  * @param input:PokeError|PokeSuccess 
  * @returns Boolean
  */
-export function isPokeError(input) : input is PokeError{
-    return input.error != undefined
+export function isPokeError(input:PokeError|PokeSuccess):input is PokeError{
+    return input['error'] !== undefined
 }
 
 export default PokeResult

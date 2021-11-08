@@ -7,8 +7,7 @@ export function stringifyQuery(query:{ [key:string] : number|boolean|string|null
     // compose query
     const queries = Object.keys(query)
         .reduce<string[]>((queryStrings, key) => {
-            // append query pairs
-            queryStrings.push(`${key}=${query[key]}`)
+            queryStrings.push(`${key}=${query[key]}`)   // append query pairs
             return queryStrings
         }, [])
     // return queries join by '&'
