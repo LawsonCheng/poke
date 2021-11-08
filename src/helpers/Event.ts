@@ -40,7 +40,7 @@ export class EventManagerClass {
         }
     }
 
-    isProtocol =  (input: string) : input is Protocol => {
+    isProtocol = (input: string) : input is Protocol => {
         return /^https?/.test(input)
     }
 

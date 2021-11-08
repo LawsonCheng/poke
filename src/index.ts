@@ -1,7 +1,3 @@
-/* eslint-disable indent */
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable semi */
 import * as https from 'https'
 import * as http from 'http'
 import * as zlib from 'zlib'
@@ -15,23 +11,27 @@ import { JSONCallback, toJson, toJsonWithCallback } from './helpers/JSON'
 import { EventManagerClass } from './helpers/Event'
 
 /**
- * Usage: https://github.com/LawsonCheng/poke/blob/main/README.md
- * 
- * @param host:string The destination of your request pointing to.
- * @param options Specify your method, body, headers etc to customize your request
- * @param callback Callback(result:PokeResult) will be called when the request is completed
- * @returns Promise<PokeResult> | .on('response'|'end'|'data'|'error', callback(result:any)) | pipe(stream:WriteStream)
+ * Class of "Poke"
  */
-
-
 export class PokeClass extends EventManagerClass {
 
+    // host: The full url of the request's destination
     host: string
+    // Customize Poke request
     options?: PokeOption<Body>
+    // The callback function called if you may not want to use Promise
     callback?: (pr: PokeResult) => void
+    // A flag to prevent duplicated requests
     requestFired: boolean
+    // The request body reference
     req?:http.ClientRequest
 
+    /**
+     * Constructor
+     * @param host required. https://foo.com/api
+     * @param options optional
+     * @param callback optional
+     */
     constructor(host: string, options?: PokeOption<Body>, callback?:(pr:PokeResult) => void) {
         super()
         this.host = host
@@ -43,11 +43,18 @@ export class PokeClass extends EventManagerClass {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    /**
+     * @private Handling stream response
+     * @param stream:pipe 
+     * @returns http.Incomingmessage|zlib.Gunzip
+     */
     private prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream; 
 
-
-    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    /**
+     * @private Main body to hanlding the request
+     * @param requestCallback:
+     * @returns 
+     */
     private makeRequest(requestCallback?:(pokeResult: PokeResult) => void):this|void {
         // terminate function if request is fired already
         if(this.requestFired === true) return 
@@ -108,7 +115,9 @@ export class PokeClass extends EventManagerClass {
             // determine whether needs encoding in gzip
             const isGzip = /^gzip$/.test((res.headers || {})['content-encoding'] || '')
             // setup stream preparation
-            this.prepareStream(res)
+            const _prepareStream = (source:zlib.Gunzip|http.IncomingMessage) => {
+                // handle stream
+                this.prepareStream(source)
                 // listen to data event
                 .on('data', d => {
                     result.body = result.body.concat(Buffer.isBuffer(d) ? d.toString() : d)
@@ -132,16 +141,15 @@ export class PokeClass extends EventManagerClass {
                         requestCallback(error_result)
                     }
                 })
-
+            }
             // handling gzip
             if((this.options?.gzip !== undefined && this.options?.gzip === true) || isGzip === true) {
                 const gunzip = zlib.createGunzip()
                 res.pipe(gunzip)
                 // handles data
-                this.prepareStream(gunzip)
-                 
+                _prepareStream(gunzip)
             }else {
-                this.prepareStream(res)
+                _prepareStream(res)
             }
         })
         // do we need to timeout the request?
@@ -170,32 +178,48 @@ export class PokeClass extends EventManagerClass {
         this.req?.end()    // req end
         // return PokeResult in callback
         if(this.callback !== undefined) {
-            console.log('1')
             // fire request
             this.makeRequest(this.callback)
         } else {
-            console.log('2')
             return this
         }
     }
 
+    /**
+     * Returns the request in the form of Promise()
+     * @returns Promise<PokeSuccess>
+     */
     public promise = ():Promise<PokeSuccess> => new Promise((resolve, reject) => {
         this.makeRequest(result => {
             !isPokeError(result) ? resolve(result) : reject(result)
         })
     })
 
+    /**
+     * Terminate request if it's not completed yet
+     */
     public abort = ():void => {
         if(this.req?.destroy !== undefined) {
             this.req?.destroy
         }
     }
     
-    public on = (eventName, callback):this => {
+    /**
+     * Listening to various of events of the request
+     * @param eventName 
+     * @param callback 
+     * @returns 
+     */
+    public on = (eventName:string, callback:() => void):this => {
         this.set(eventName, callback); 
-        return callback;  
+        return this;  
     }
 
+    /**
+     * Pipe response
+     * @param stream
+     * @returns 
+     */
     public pipe = (stream):WriteStream|ServerResponse => {
          // listen to stream event
          this.stream(stream)
@@ -207,6 +231,16 @@ export class PokeClass extends EventManagerClass {
     
 }
 
-const Poke = (host: string, options?: PokeOption<Body>, callback?:(pr:PokeResult) => void) => new PokeClass(host, options, callback)
+
+
+/**
+ * Usage: https://github.com/LawsonCheng/poke/blob/main/README.md
+ * 
+ * @param host:string The destination of your request pointing to.
+ * @param options Specify your method, body, headers etc to customize your request
+ * @param callback Callback(result:PokeResult) will be called when the request is completed
+ * @returns Promise<PokeResult> | .on('response'|'end'|'data'|'error', callback(result:any)) | pipe(stream:WriteStream)
+ */
+const Poke = (host: string, options?: PokeOption<Body>, callback?:(pr:PokeResult) => void):PokeClass => new PokeClass(host, options, callback)
 
 export default Poke
