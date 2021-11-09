@@ -177,10 +177,10 @@ export class PokeClass extends EventManagerClass {
             this.req?.write(this.options.body || {})    // append body
         }
         // end of the request
-        this.req?.end()    // req end
+        this.req?.end()
         // return PokeResult in callback
         if(this.callback !== undefined) {
-            // fire request
+            // fire request directly
             this.makeRequest(this.callback)
         } else {
             return this
@@ -201,7 +201,7 @@ export class PokeClass extends EventManagerClass {
      * Terminate request if it's not completed yet
      */
     public abort = ():void => {
-        if(this.req?.destroy !== undefined) {
+        if(this.requestFired === true && this.req?.destroy !== undefined) {
             this.req?.destroy
         }
     }
@@ -213,7 +213,10 @@ export class PokeClass extends EventManagerClass {
      * @returns 
      */
     public on = (eventName:string, callback:() => void):this => {
+        // save handler for specific event
         this.set(eventName, callback)
+        // fire request
+        this.makeRequest()
         return this
     }
 
