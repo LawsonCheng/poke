@@ -28,7 +28,7 @@ export default interface PokeOption<Body> {
      */
     gzip? : boolean
     /**
-     * @description Terminate when the timeout value is reacted if the request is not finished yet. e.g. 1000 for 1s
+     * @description Terminate unfinished request when the timeout value(ms) is reached. e.g. 1000 for 1s
      */
     timeout? : number,
     /**
