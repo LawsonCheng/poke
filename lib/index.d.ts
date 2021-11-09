@@ -5,7 +5,7 @@ import { WriteStream } from 'fs';
 import { ServerResponse } from 'http';
 import PokeOption from './interfaces/PokeOption';
 import PokeResult, { PokeSuccess } from './interfaces/PokeResult';
-import { EventManagerClass, CallbackEvent } from './helpers/Event';
+import { EventManagerClass, EventCallbackFunctions, CallbackEvent } from './helpers/Event';
 /**
  * Class of "Poke"
  */
@@ -49,7 +49,7 @@ export declare class PokeClass extends EventManagerClass {
      * @param callback
      * @returns
      */
-    on: (eventName: CallbackEvent, callback: () => void) => this;
+    on: (eventName: CallbackEvent, callback: EventCallbackFunctions) => this;
     /**
      * Pipe response
      * @param stream
