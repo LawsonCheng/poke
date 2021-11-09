@@ -47,7 +47,7 @@ export class PokeClass extends EventManagerClass {
      * @param stream:pipe 
      * @returns http.Incomingmessage|zlib.Gunzip
      */
-    protected prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream; 
+    protected prepareStream = (stream:http.IncomingMessage|zlib.Gunzip):http.IncomingMessage|zlib.Gunzip => stream; 
 
     /**
      * @private Main body to hanlding the request
