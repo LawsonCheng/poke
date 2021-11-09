@@ -1,2 +1,2 @@
-import Poke from './src/index'
-export default Poke
+import PokeClass from './src/index'
+export default PokeClass

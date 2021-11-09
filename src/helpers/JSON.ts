@@ -13,6 +13,8 @@ export interface JSONCallback<Result> {
  * @param callback
  * callback function to return parsed json
  */
+
+
 export function toJsonWithCallback<Result>(jsonString:string, callback: JSONCallback<Result>): void {
     try {
         // parse json
@@ -35,10 +37,9 @@ export function toJson<Result>(jsonString:string): Promise<Result>  {
     try {
         // parse json
         const json = JSON.parse(jsonString) as Result
-        // resolve with json
-        return Promise.resolve(json)
+        return Promise.resolve(json)    // resolve with json
+
     } catch (error) {
-        // error occurred, reject promise
-        return Promise.reject(error)
+        return Promise.reject(error)    // error occurred, reject promise
     }
 }
