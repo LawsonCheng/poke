@@ -30,5 +30,5 @@ export declare type PokeResult = PokeSuccess | PokeError;
  * @param input:PokeError|PokeSuccess
  * @returns Boolean
  */
-export declare function isPokeError(input: any): input is PokeError;
+export declare function isPokeError(input: PokeError | PokeSuccess): input is PokeError;
 export default PokeResult;
