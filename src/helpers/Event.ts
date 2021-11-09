@@ -10,7 +10,7 @@ type Protocol = 'http'|'https';
 /**
  * Callback event name
  */
-type CallbackEvent = 'data' | 'error' | 'response' | 'end'
+type CallbackEvent = 'data'|'error'|'response'|'end'
 
 /**
  * Defines types of stream
