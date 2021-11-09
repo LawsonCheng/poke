@@ -5,7 +5,7 @@ import PokeResult, { PokeError, PokeSuccess } from '../interfaces/PokeResult'
 /**
  * Defines protocol js.Poke supports
  */
-type Protocol = 'http' | 'https';
+type Protocol = 'http'|'https';
 
 /**
  * Callback event name
@@ -15,7 +15,7 @@ type CallbackEvent = 'data' | 'error' | 'response' | 'end'
 /**
  * Defines types of stream
  */
-type Stream = WriteStream | ServerResponse
+type Stream = WriteStream|ServerResponse
 
 /**
  * Defines container for different callbacks
@@ -30,8 +30,10 @@ type EventCallbacksContainer = {
 }
 
 export class EventManagerClass {
-    callbacks: EventCallbacksContainer; 
-    isPokeError: (input:PokeError) => void;  
+    // callbacks container
+    protected callbacks: EventCallbacksContainer;
+    // check whether the PokeResult is PokeSuccess or PokeError
+    protected isPokeError: (input:PokeError) => void;  
 
     constructor(){
         this.callbacks = {}
@@ -40,44 +42,43 @@ export class EventManagerClass {
         }
     }
 
-    isProtocol = (input: string) : input is Protocol => {
+    protected isProtocol = (input: string) : input is Protocol => {
         return /^https?/.test(input)
     }
 
-    isCallbackEvent(input:string): input is CallbackEvent {
+    protected isCallbackEvent(input:string): input is CallbackEvent {
         return /^data|error|response|end$/.test(input)
     }
 
-    set(eventName:string, callback: () => void): void {
+    protected set(eventName:string, callback: () => void): void {
         if(this.isCallbackEvent(eventName)){
             this.callbacks[eventName] = callback
         }
     }
 
-    response(result: PokeResult):void {
+    protected response(result: PokeResult):void {
         if(this.callbacks['response'] != undefined){
             this.callbacks['response'](result)
         }
     }
 
-    end(): void {
+    protected end():void {
         if(this.callbacks['end'] != undefined) {
             this.callbacks['end']()
         }
-
         if(this.callbacks['stream'] != undefined){
             this.callbacks['stream'].end()
         }
     }
 
-    error (result: PokeError):void {
+    protected error (result: PokeError):void {
         if(this.callbacks['error'] !== undefined) {
             // return response object with error
             this.callbacks['error'](result)
         }
     }
 
-    data (chunk: string): void {
+    protected data (chunk: string): void {
         if(this.callbacks['data'] !== undefined) {
             this.callbacks['data'](chunk)
         }
@@ -88,7 +89,7 @@ export class EventManagerClass {
         }
     }
 
-    stream(writableStream: Stream):void {
+    protected stream(writableStream: Stream):void {
         // save stream
         this.callbacks['stream'] = writableStream   
     }
