@@ -19,11 +19,11 @@ export class PokeClass extends EventManagerClass {
     // Customize Poke request
     options?: PokeOption<Body>
     // The callback function called if you may not want to use Promise
-    callback?: (pr: PokeResult) => void
+    protected callback?: (pr: PokeResult) => void
     // A flag to prevent duplicated requests
-    requestFired: boolean
+    protected requestFired: boolean
     // The request body reference
-    req?:http.ClientRequest
+    protected req?:http.ClientRequest
 
     /**
      * Constructor
@@ -47,14 +47,14 @@ export class PokeClass extends EventManagerClass {
      * @param stream:pipe 
      * @returns http.Incomingmessage|zlib.Gunzip
      */
-    private prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream; 
+    protected prepareStream = (stream:http.IncomingMessage|zlib.Gunzip):http.IncomingMessage|zlib.Gunzip => stream; 
 
     /**
      * @private Main body to hanlding the request
      * @param requestCallback:
      * @returns 
      */
-    private makeRequest(requestCallback?:(pokeResult: PokeResult) => void):this|void {
+    protected makeRequest(requestCallback?:(pokeResult: PokeResult) => void):this|void {
         // terminate function if request is fired already
         if(this.requestFired === true) return 
         // set request as fired
@@ -177,10 +177,10 @@ export class PokeClass extends EventManagerClass {
             this.req?.write(this.options.body || {})    // append body
         }
         // end of the request
-        this.req?.end()    // req end
+        this.req?.end()
         // return PokeResult in callback
         if(this.callback !== undefined) {
-            // fire request
+            // fire request directly
             this.makeRequest(this.callback)
         } else {
             return this
@@ -201,7 +201,7 @@ export class PokeClass extends EventManagerClass {
      * Terminate request if it's not completed yet
      */
     public abort = ():void => {
-        if(this.req?.destroy !== undefined) {
+        if(this.requestFired === true && this.req?.destroy !== undefined) {
             this.req?.destroy
         }
     }
@@ -213,7 +213,10 @@ export class PokeClass extends EventManagerClass {
      * @returns 
      */
     public on = (eventName:string, callback:() => void):this => {
+        // save handler for specific event
         this.set(eventName, callback)
+        // fire request
+        this.makeRequest()
         return this
     }
 

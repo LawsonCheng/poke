@@ -11,12 +11,11 @@ A lightweight and handy JS HTTP Client.
 
 ## Why use Poke?
 
-- [x] Very easy to use
-- [x] Written in Typeescript
-- [x] Lightweight
-- [x] Stream support
-- [ ] WebSocket (Upcoming)
-
+- 😌 &nbsp;&nbsp;Very easy to use
+- 👨🏻‍💻 &nbsp;&nbsp;Written in TypeScript
+- 🚀 &nbsp;&nbsp;Lightweight
+- ⼮ &nbsp;&nbsp;Stream support
+- 💾 &nbsp;&nbsp;Easy to download file
 ## Installation
 ```sh
 npm i js.poke --save
@@ -122,7 +121,7 @@ poke(hostname , pokeOptions)
 // on chunk is recieved
 .on('data', (chunk) => {
     // handle your data here
-    console.log(d)
+    console.log(chunk)
 })
 // on request eneded
 .on('end', () => {
@@ -280,6 +279,15 @@ poke('https://foo.api.com', {
 })
 ```
 
-
 ## Become a contirbutor!
-Please see [CONTRIBUTING.md](https://github.com/LawsonCheng/poke/blob/main/CONTRIBUTING.md)
+Million thanks to whom contributes to this project!❤️
+<br/>
+<a href = "https://github.com/LawsonCheng/poke/contributors">
+  <img src = "https://contrib.rocks/image?repo=LawsonCheng/poke"/>
+</a>
+</div>
+
+Pull requests are welcome! Please see [CONTRIBUTING.md](https://github.com/LawsonCheng/poke/blob/main/CONTRIBUTING.md)
+
+## What's Next?
+- 🔌 &nbsp;&nbsp;WebSocket (Upcoming)
