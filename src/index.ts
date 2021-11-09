@@ -19,11 +19,11 @@ export class PokeClass extends EventManagerClass {
     // Customize Poke request
     options?: PokeOption<Body>
     // The callback function called if you may not want to use Promise
-    callback?: (pr: PokeResult) => void
+    protected callback?: (pr: PokeResult) => void
     // A flag to prevent duplicated requests
-    requestFired: boolean
+    protected requestFired: boolean
     // The request body reference
-    req?:http.ClientRequest
+    protected req?:http.ClientRequest
 
     /**
      * Constructor
@@ -47,14 +47,14 @@ export class PokeClass extends EventManagerClass {
      * @param stream:pipe 
      * @returns http.Incomingmessage|zlib.Gunzip
      */
-    private prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream; 
+    protected prepareStream = (stream: http.IncomingMessage | zlib.Gunzip) => stream; 
 
     /**
      * @private Main body to hanlding the request
      * @param requestCallback:
      * @returns 
      */
-    private makeRequest(requestCallback?:(pokeResult: PokeResult) => void):this|void {
+    protected makeRequest(requestCallback?:(pokeResult: PokeResult) => void):this|void {
         // terminate function if request is fired already
         if(this.requestFired === true) return 
         // set request as fired
