@@ -7,7 +7,7 @@ import PokeOption from './interfaces/PokeOption'
 import PokeResult, { isPokeError, PokeSuccess } from './interfaces/PokeResult'
 import { stringifyQuery } from './helpers/Query'
 import { JSONCallback, toJson, toJsonWithCallback } from './helpers/JSON'
-import { EventManagerClass, CallbackEvent } from './helpers/Event'
+import { EventManagerClass, EventCallbackFunctions, CallbackEvent } from './helpers/Event'
 
 /**
  * Class of "Poke"
@@ -212,7 +212,7 @@ export class PokeClass extends EventManagerClass {
      * @param callback 
      * @returns 
      */
-    public on = (eventName:CallbackEvent, callback:() => void):this => {
+    public on = (eventName:CallbackEvent, callback:EventCallbackFunctions):this => {
         // save handler for specific event
         this.set(eventName, callback)
         // fire request

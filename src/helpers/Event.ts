@@ -21,13 +21,13 @@ type Stream = WriteStream|ServerResponse
  * Defines container for different callbacks
  */
 type EventCallbacksContainer = {
-    [e in CallbackEvent | 'stream']? : 
-        e extends 'data' ? (chunk:string) => void : 
-        e extends 'error' ? (result:PokeError) => void :
-        e extends 'response' ? (param?:PokeSuccess) => void : 
-        e extends 'end' ? () => void : 
-        e extends 'stream' ? Stream : never
+    data?: (chunk:string|Buffer) => void
+    error?: (result:PokeError) => void
+    response?: (param?:PokeSuccess) => void
+    end?: () => void
 }
+
+export type EventCallbackFunctions = EventCallbacksContainer[keyof EventCallbacksContainer]
 
 export class EventManagerClass {
     // callbacks container
@@ -50,7 +50,7 @@ export class EventManagerClass {
         return /^data|error|response|end$/.test(input)
     }
 
-    protected set(eventName:string, callback: () => void): void {
+    protected set(eventName:CallbackEvent, callback): void {
         if(this.isCallbackEvent(eventName)){
             this.callbacks[eventName] = callback
         }
