@@ -32,11 +32,11 @@ Poke allows you to make http request in the simplest way. See the following exam
 const poke = require('js.poke')
 
 // Using promise
-poke( 'https://foo.api.com/candys')
+poke('https://foo.api.com/candys')
 .promise()
 .then(result => {
     // response body here
-    console.log(result.body)
+    console.log('> body(string): ', result.body)
     // get result in json format
     return result.json()
 })
