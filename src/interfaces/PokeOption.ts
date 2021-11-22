@@ -1,5 +1,3 @@
-import { OutgoingHttpHeaders } from 'http2'
-
 export default interface PokeOption<Body> {
     /**
      * @description Standard http request methods
@@ -16,7 +14,7 @@ export default interface PokeOption<Body> {
     /**
      * @description Put your customized headers here
      */
-    headers? : OutgoingHttpHeaders|undefined
+    headers? : Headers
     /**
      * @description Accepts Query object, the object will be parsed into query string
      */
