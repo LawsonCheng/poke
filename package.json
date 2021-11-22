@@ -1,6 +1,6 @@
 {
   "name": "js.poke",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "A lightweight and handy JS HTTP client",
   "main": "index.js",
   "scripts": {
