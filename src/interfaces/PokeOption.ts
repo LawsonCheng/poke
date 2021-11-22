@@ -1,4 +1,4 @@
-import { OutgoingHttpHeaders } from "http2";
+import { OutgoingHttpHeaders } from 'http2'
 
 export default interface PokeOption<Body> {
     /**
