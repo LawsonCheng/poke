@@ -14,7 +14,7 @@ export default interface PokeOption<Body> {
     /**
      * @description Put your customized headers here
      */
-    headers? : {[key:string]:number|boolean|string|null|object}
+    headers? : {[key:string]:number|boolean|string|null|Record<string, unknown>}
     /**
      * @description Accepts Query object, the object will be parsed into query string
      */
