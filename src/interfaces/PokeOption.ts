@@ -22,7 +22,7 @@ export default interface PokeOption<Body> {
     /**
      * @description Form Data/Request Body
      */
-    body? : Body
+    body? : string|Buffer|any
     /**
      * @description Set true if use gzip, default false
      */
