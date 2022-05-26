@@ -22,7 +22,7 @@ npm i js.poke --save
 ```
 or
 ```sh
-yarn js.poke
+yarn add js.poke
 ```
 
 ## Easy to use!
